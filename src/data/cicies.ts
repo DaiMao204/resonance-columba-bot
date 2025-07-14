@@ -19,7 +19,8 @@ export const cityList = [
     "栖羽站",
     "岚心城",
     "塔图站",
-    "黑月游乐城"
+    "黑月游乐城",
+    "贡露城"
   ];
   
 export var cityItemList = {};

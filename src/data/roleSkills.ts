@@ -166,6 +166,9 @@ export var role_resonanceskills = {
     },
     马吉拉·星仪: {
         resonance: 5
+    },
+    伊卡菈:{
+        resonance: 5
     }
 };
 

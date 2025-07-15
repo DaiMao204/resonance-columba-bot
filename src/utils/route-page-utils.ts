@@ -433,7 +433,7 @@ export const calculateOneGraphBuyCombinations = (
         let buyPrice = priceData?.["buy"]?.[fromCity]?.price ?? 0;
 
         if (buyPrice === 0) {
-          console.warn(`No buy price data for ${name} in ${fromCity}`);
+          //console.warn(`No buy price data for ${name} in ${fromCity}`);
           return [];
         }
 
@@ -490,7 +490,7 @@ export const calculateOneGraphBuyCombinations = (
       const toCityMaster = CITY_BELONGS_TO[toCity] ?? toCity;
       const sellPrestige = PRESTIGES.find((p) => p.level === prestige[toCityMaster]);
       if (!sellPrestige) {
-        console.warn(`Prestige configurtation not found for ${toCityMaster} level ${prestige[toCityMaster]}`);
+        //console.warn(`Prestige configurtation not found for ${toCityMaster} level ${prestige[toCityMaster]}`);
         continue;
       }
 

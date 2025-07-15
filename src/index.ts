@@ -137,6 +137,7 @@ function get_reco(maxRestock,onegraphBuyCombinationsGo,onegraphBuyCombinationsRt
         onegraphBuyCombinationsRt
       );
       if (!reco || reco.length !== 2) continue;
+      //console.log(reco)
       const goAndReturn = reco;
       const goAndRtProfit = goAndReturn.reduce((acc, cur) => acc + cur.profit, 0);
       const goAndRtFatigue = goAndReturn[0].fatigue + goAndReturn[1].fatigue;
@@ -675,6 +676,7 @@ export async function get_price(){
   let max_price_str = "";
 
   var maxRestock_1 = get_generalProfitIndex(1, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain);
+  //console.log(maxRestock_1)
   min = maxRestock_1.price > min ? maxRestock_1.price : min;
   low_min = maxRestock_1.low_price > low_min ? maxRestock_1.low_price : low_min;
   if (maxRestock_1.price > max_price) {

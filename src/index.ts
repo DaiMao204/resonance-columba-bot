@@ -1,13 +1,13 @@
 import { Context, Schema, h, Bot, Dict } from 'koishi'
 import { cityList, cityItemList } from './data/cicies'
-import { products_default } from './data/products'
+import { products_default } from './data/data'
 import { intervalTime } from './utils/time'
 import axios from 'axios';
 import { GetPricesProducts } from './interfaces/get-prices';
 import { convertFirebaseDataToGetPricesData,convertFirebaseDataToGetPricesDataNew } from './utils/price-api-utils'
 import { calculateOneGraphBuyCombinations,getOneGraphRecommendation,calculateGeneralProfitIndex } from './utils/route-page-utils'
-import { BotConfig, BotConfigNoReturnBargain } from './interfaces/player-config';
-import { CITIES } from './data/cicies';
+import { BotConfig, BotConfigNoReturnBargain, BotConfigSteam, BotConfigNoReturnBargainSteam } from './interfaces/player-config';
+import { CITIES,CITIESSTEAM } from './data/cicies';
 import { OnegraphRecommendations,OnegraphBuyCombinationStats,OnegraphTopProfit,OnegraphTopProfitItem,OnegraphTopProfitSortedBy } from './interfaces/route-page';
 import { PRODUCTS } from './data/products';
 import { updata_columba_data } from './data/get-data';
@@ -29,6 +29,7 @@ export interface Config {
   ErrorTeamList: Array<string>
   MaxTeamList: Array<string>
   ErrorItemList: Array<string>
+  SteamTeamList: Array<string>
   ItemSendList: Dict<Dict<ConfigItemList,string> , string>
   StartUrl: string
 }
@@ -71,6 +72,7 @@ export const Config: Schema<Config> = Schema.object({
   ErrorTeamList: Schema.array(Schema.string()).default([]).description("错误提醒广播群组列表"),
   MaxTeamList: Schema.array(Schema.string()).default([]).description("@全体大行情通知群组列表"),
   ErrorItemList: Schema.array(Schema.string()).default([]).description("屏蔽商品名称列表"),
+  SteamTeamList: Schema.array(Schema.string()).default([]).description("steam服群组列表"),
   ItemSendList: Schema.dict(Schema.dict(ConfigItemList.description("商品名称"), Schema.string()).description("群号"), Schema.string()).description("商品行情通告表"),
   StartUrl: Schema.string().description("启动APIURL，默认留空")
 })
@@ -85,9 +87,23 @@ var small_output_str = "";
 
 var short_output_str = "";
 
+var output_str_steam = ""
+
+var low_output_str_steam = ""
+
+var small_output_str_steam = "";
+
+var short_output_str_steam = "";
+
+
+
 export var responseData: GetPricesProducts
+export var responseDataSteam: GetPricesProducts
+
 
 var intervalID
+
+var intervalIDSteam
 
 var intervalID2;
 
@@ -119,7 +135,11 @@ var ErrorItemList = []
 
 var ItemMaxPrice;
 
-function get_reco(maxRestock,onegraphBuyCombinationsGo,onegraphBuyCombinationsRt){
+var ItemMaxPriceSteam;
+
+var SteamTeamList = [];
+
+function get_reco(maxRestock,onegraphBuyCombinationsGo,onegraphBuyCombinationsRt,CITIES){
   const results: OnegraphRecommendations = {};
   for (const fromCity of CITIES) {
     results[fromCity] = {};
@@ -229,10 +249,10 @@ function get_topProfits(onegraphRecommendations){
   return topProfits
 }
 
-function get_generalProfitIndex(maxRestock, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain){
+function get_generalProfitIndex(maxRestock, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIES){
 
-  const results = get_reco(maxRestock,onegraphBuyCombinationsGo,onegraphBuyCombinationsRt)
-  const resultsNoReturnBargain = get_reco(maxRestock,onegraphBuyCombinationsGo,onegraphBuyCombinationsRtNoBargain)
+  const results = get_reco(maxRestock,onegraphBuyCombinationsGo,onegraphBuyCombinationsRt,CITIES)
+  const resultsNoReturnBargain = get_reco(maxRestock,onegraphBuyCombinationsGo,onegraphBuyCombinationsRtNoBargain,CITIES)
 
   const onegraphRecommendations = results
   const onegraphRecommendationsNoReaturnBargain = resultsNoReturnBargain
@@ -377,8 +397,8 @@ export function send_error(str){
 }
 
 function send_message(price){
-  if (price >= 9500 && send_flag_max && MaxTeamList.length != 0) {
-    ctx_send.bots["onebot:" + qqID].broadcast(MaxTeamList, (h('at', { type: "all" })) + "当前有9500+大行情 综合利润" + price + "\n" + output_str);
+  if (price >= 10000 && send_flag_max && MaxTeamList.length != 0) {
+    ctx_send.bots["onebot:" + qqID].broadcast(MaxTeamList, (h('at', { type: "all" })) + "当前有10000+大行情 综合利润" + price + "\n" + output_str);
     send_flag_max = false;
     sendMaxTimerId = setTimeout(flagMaxTimer, 72e5, true);
     console.log("触发超大行情通告，延迟2小时");
@@ -421,8 +441,8 @@ function send_message(price){
 function send_low_message(price){
   //console.log("whyNotSendMessage")
   //console.log(price)
-  if (price >= 9500 && send_flag_max && MaxTeamList.length != 0) {
-    ctx_send.bots["onebot:" + qqID].broadcast(MaxTeamList, (h('at', { type: "all" })) + "当前有9500+大行情 综合利润" + price);
+  if (price >= 10000 && send_flag_max && MaxTeamList.length != 0) {
+    ctx_send.bots["onebot:" + qqID].broadcast(MaxTeamList, (h('at', { type: "all" })) + "当前有10000+大行情 综合利润" + price);
     send_flag_max = false;
     sendMaxTimerId = setTimeout(flagMaxTimer, 72e5, true);
     console.log("触发超大行情通告，延迟2小时");
@@ -486,11 +506,17 @@ var tiInterval;
 var nextTi = Date.now() / 1000 - 60;
 var waitTi = 0;
 
+var tiSteam;
+var tiIntervalSteam;
+var nextTiSteam = Date.now() / 1000 - 60;
+var waitTiSteam = 0;
+
 export async function get_price(){
   if (getDataUrl == "" || getDataUrl == null)
     return;
   if (getDataUrl == "https://reso-online-ddos.soli-reso.com/get_server_trade/") {
     let tiNow = Date.now() / 1e3;
+    console.log("官服")
     console.log(tiNow);
     console.log(nextTi);
     if (tiNow < nextTi) {
@@ -518,6 +544,7 @@ export async function get_price(){
     }
     ItemMaxPrice = get_max_price();
     responseData = convertFirebaseDataToGetPricesDataNew(data);
+
   }
 
   min = 0
@@ -675,7 +702,7 @@ export async function get_price(){
   let max_price = 0;
   let max_price_str = "";
 
-  var maxRestock_1 = get_generalProfitIndex(1, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain);
+  var maxRestock_1 = get_generalProfitIndex(1, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIES);
   //console.log(maxRestock_1)
   min = maxRestock_1.price > min ? maxRestock_1.price : min;
   low_min = maxRestock_1.low_price > low_min ? maxRestock_1.low_price : low_min;
@@ -683,35 +710,35 @@ export async function get_price(){
     max_price = maxRestock_1.price;
     max_price_str = maxRestock_1.top_str;
   }
-  var maxRestock_2 = get_generalProfitIndex(2, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain);
+  var maxRestock_2 = get_generalProfitIndex(2, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIES);
   min = maxRestock_2.price > min ? maxRestock_2.price : min;
   low_min = maxRestock_2.low_price > low_min ? maxRestock_2.low_price : low_min;
   if (maxRestock_2.price > max_price) {
     max_price = maxRestock_2.price;
     max_price_str = maxRestock_2.top_str;
   }
-  var maxRestock_3 = get_generalProfitIndex(3, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain);
+  var maxRestock_3 = get_generalProfitIndex(3, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIES);
   min = maxRestock_3.price > min ? maxRestock_3.price : min;
   low_min = maxRestock_3.low_price > low_min ? maxRestock_3.low_price : low_min;
   if (maxRestock_3.price > max_price) {
     max_price = maxRestock_3.price;
     max_price_str = maxRestock_3.top_str;
   }
-  var maxRestock_4 = get_generalProfitIndex(4, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain);
+  var maxRestock_4 = get_generalProfitIndex(4, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIES);
   min = maxRestock_4.price > min ? maxRestock_4.price : min;
   low_min = maxRestock_4.low_price > low_min ? maxRestock_4.low_price : low_min;
   if (maxRestock_4.price > max_price) {
     max_price = maxRestock_4.price;
     max_price_str = maxRestock_4.top_str;
   }
-  var maxRestock_5 = get_generalProfitIndex(5, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain);
+  var maxRestock_5 = get_generalProfitIndex(5, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIES);
   min = maxRestock_5.price > min ? maxRestock_5.price : min;
   low_min = maxRestock_5.low_price > low_min ? maxRestock_5.low_price : low_min;
   if (maxRestock_5.price > max_price) {
     max_price = maxRestock_5.price;
     max_price_str = maxRestock_5.top_str;
   }
-  var maxRestock_6 = get_generalProfitIndex(6, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain);
+  var maxRestock_6 = get_generalProfitIndex(6, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIES);
   min = maxRestock_6.price > min ? maxRestock_6.price : min;
   low_min = maxRestock_6.low_price > low_min ? maxRestock_6.low_price : low_min;
   if (maxRestock_6.price > max_price) {
@@ -764,6 +791,161 @@ export async function get_price(){
   //console.log(PRODUCTS)
 }
 
+export async function get_price_steam(){
+  var getDataUrlSteam = "https://reso-online-steam.soli-reso.com/get_server_trade/"
+  let tiNow = Date.now() / 1e3;
+  console.log("Steam服")
+  console.log(tiNow);
+  console.log(nextTiSteam);
+  if (tiNow < nextTiSteam) {
+    intervalIDSteam = setTimeout(get_price_steam, 3e4);
+    console.log("未达到更新时间");
+    return;
+  }
+  const response = await axios.get(getDataUrlSteam);
+  var data;
+  data = response.data.server_trade;
+  tiSteam = response.data.refresh_time;
+  tiIntervalSteam = response.data.interval;
+  nextTiSteam = tiSteam + tiIntervalSteam;
+  console.log(nextTiSteam);
+  console.log(nextTiSteam * 1e3 - tiNow * 1e3 + 60);
+  if (nextTiSteam * 1e3 - tiNow * 1e3 + 60 < 0) {
+    if (waitTiSteam < 6e4)
+      waitTiSteam = waitTiSteam + 1e4;
+    intervalIDSteam = setTimeout(get_price_steam, waitTiSteam);
+    console.log("STEAM数据未刷新，等待时间" + waitTiSteam / 1e3 + "s");
+  } else {
+    intervalIDSteam = setTimeout(get_price_steam, nextTiSteam * 1e3 - tiNow * 1e3 + 25e3);
+    waitTiSteam = 0;
+  }
+  ItemMaxPriceSteam = get_max_price();
+  responseDataSteam = convertFirebaseDataToGetPricesDataNew(data);
+
+
+  min = 0
+  low_min = 0
+
+  //console.log(response)
+  //console.log(products_default)
+  //console.log(Object.keys(data).length)
+  //console.log(products_default.length)
+  //console.log(PRODUCTS)
+
+  output_str_steam = "";
+  low_output_str_steam = "";
+  small_output_str_steam = "";
+  short_output_str_steam = "";
+
+  for (let item in ErrorItemList){
+    if (ErrorItemList[item] in responseDataSteam)
+      responseDataSteam[ErrorItemList[item]]['buy'] = {}
+  }
+  //console.log(responseDataSteam)
+
+
+  const onegraphBuyCombinationsGo = calculateOneGraphBuyCombinations(responseDataSteam, BotConfigSteam.maxLot, BotConfigSteam.bargain, BotConfigSteam.prestige, BotConfigSteam.roles, BotConfigSteam.productUnlockStatus, BotConfigSteam.events);
+  const onegraphBuyCombinationsRt = calculateOneGraphBuyCombinations(responseDataSteam, BotConfigSteam.maxLot, BotConfigSteam.returnBargain, BotConfigSteam.prestige, BotConfigSteam.roles, BotConfigSteam.productUnlockStatus, BotConfigSteam.events);
+  const onegraphBuyCombinationsRtNoBargain = calculateOneGraphBuyCombinations(responseDataSteam, BotConfigSteam.maxLot, BotConfigNoReturnBargainSteam.returnBargain, BotConfigSteam.prestige, BotConfigSteam.roles, BotConfigSteam.productUnlockStatus, BotConfigSteam.events);
+  
+  //console.log(onegraphBuyCombinationsGo)
+  output_str_steam = output_str_steam + "综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 800货仓\n";
+  low_output_str_steam = low_output_str_steam + "无海角城版本综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 800货仓\n";
+  small_output_str_steam = small_output_str_steam + "综合利润往返跑商行情第一名\n\n";
+  //console.log("单票利润往返跑商行情 满抬砍 满声望 满共振 1016货仓")
+
+  let max_price = 0;
+  let max_price_str = "";
+
+  var maxRestock_1 = get_generalProfitIndex(1, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIESSTEAM);
+  //console.log(maxRestock_1)
+  min = maxRestock_1.price > min ? maxRestock_1.price : min;
+  low_min = maxRestock_1.low_price > low_min ? maxRestock_1.low_price : low_min;
+  if (maxRestock_1.price > max_price) {
+    max_price = maxRestock_1.price;
+    max_price_str = maxRestock_1.top_str;
+  }
+  var maxRestock_2 = get_generalProfitIndex(2, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIESSTEAM);
+  min = maxRestock_2.price > min ? maxRestock_2.price : min;
+  low_min = maxRestock_2.low_price > low_min ? maxRestock_2.low_price : low_min;
+  if (maxRestock_2.price > max_price) {
+    max_price = maxRestock_2.price;
+    max_price_str = maxRestock_2.top_str;
+  }
+  var maxRestock_3 = get_generalProfitIndex(3, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIESSTEAM);
+  min = maxRestock_3.price > min ? maxRestock_3.price : min;
+  low_min = maxRestock_3.low_price > low_min ? maxRestock_3.low_price : low_min;
+  if (maxRestock_3.price > max_price) {
+    max_price = maxRestock_3.price;
+    max_price_str = maxRestock_3.top_str;
+  }
+  var maxRestock_4 = get_generalProfitIndex(4, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIESSTEAM);
+  min = maxRestock_4.price > min ? maxRestock_4.price : min;
+  low_min = maxRestock_4.low_price > low_min ? maxRestock_4.low_price : low_min;
+  if (maxRestock_4.price > max_price) {
+    max_price = maxRestock_4.price;
+    max_price_str = maxRestock_4.top_str;
+  }
+  var maxRestock_5 = get_generalProfitIndex(5, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIESSTEAM);
+  min = maxRestock_5.price > min ? maxRestock_5.price : min;
+  low_min = maxRestock_5.low_price > low_min ? maxRestock_5.low_price : low_min;
+  if (maxRestock_5.price > max_price) {
+    max_price = maxRestock_5.price;
+    max_price_str = maxRestock_5.top_str;
+  }
+  var maxRestock_6 = get_generalProfitIndex(6, onegraphBuyCombinationsGo, onegraphBuyCombinationsRt, onegraphBuyCombinationsRtNoBargain,CITIESSTEAM);
+  min = maxRestock_6.price > min ? maxRestock_6.price : min;
+  low_min = maxRestock_6.low_price > low_min ? maxRestock_6.low_price : low_min;
+  if (maxRestock_6.price > max_price) {
+    max_price = maxRestock_6.price;
+    max_price_str = maxRestock_6.top_str;
+  }
+  small_output_str_steam = small_output_str_steam + max_price_str + "\n\n具体排行请使用指令 详细行情 查看";
+  short_output_str_steam = max_price_str.replace("路线 综合参考利润", "");
+  output_str_steam = output_str_steam + maxRestock_1.top_str + "\n";
+  output_str_steam = output_str_steam + maxRestock_2.top_str + "\n";
+  output_str_steam = output_str_steam + maxRestock_3.top_str + "\n";
+  output_str_steam = output_str_steam + maxRestock_4.top_str + "\n";
+  output_str_steam = output_str_steam + maxRestock_5.top_str + "\n";
+  output_str_steam = output_str_steam + maxRestock_6.top_str;
+  low_output_str_steam = low_output_str_steam + maxRestock_1.low_top_str + "\n";
+  low_output_str_steam = low_output_str_steam + maxRestock_2.low_top_str + "\n";
+  low_output_str_steam = low_output_str_steam + maxRestock_3.low_top_str + "\n";
+  low_output_str_steam = low_output_str_steam + maxRestock_4.low_top_str + "\n";
+  low_output_str_steam = low_output_str_steam + maxRestock_5.low_top_str + "\n";
+  low_output_str_steam = low_output_str_steam + maxRestock_6.low_top_str;
+  console.log("行情刷新");
+  try{
+    send_message(min)
+    send_low_message(low_min)
+  }
+  catch(err) {
+    console.log("未能发送信息")
+  }
+  if (!updataFlag){
+    updataFlag = true
+    updataNum = 0
+    if (errorNum > 0){
+      console.log("正在使用旧版本数据源，请检查数据是否正确")
+      try{
+        ctx_send.bots["onebot:" + qqID].broadcast(ErrorTeamList,"正在使用旧版本数据源，请检查数据是否正确")
+      }
+      catch{
+      }
+    }
+    else{
+      console.log("数据已更新，请检查数据是否正确")
+      try{
+        ctx_send.bots["onebot:" + qqID].broadcast(ErrorTeamList,"数据已更新，请检查数据是否正确")
+      }
+      catch{
+      }
+    }
+  }
+
+  //console.log(PRODUCTS)
+}
+
 export function apply(ctx: Context, config: Config) {
   // write your plugin here
   ctx.on("ready", () => {
@@ -780,6 +962,8 @@ export function apply(ctx: Context, config: Config) {
       MaxTeamList = ctx.config.MaxTeamList;
     if (ctx.config.ShortTeamList.lenth != 0)
       ShortTeamList = ctx.config.ShortTeamList;
+    if (ctx.config.SteamTeamList.lenth != 0)
+      SteamTeamList = ctx.config.SteamTeamList;
     bigPrice = ctx.config.BigPrice;
     lowBigPrice = ctx.config.LowBigPrice;
     lowSmallPrice = ctx.config.LowSmallPrice;
@@ -795,7 +979,8 @@ export function apply(ctx: Context, config: Config) {
       clearInterval(intervalID);
       intervalID = setInterval(get_price, 6e4);
     }
-    intervalID2 = setInterval(updata_columba_data, 36e5, ctx, "", false);
+    //数据改为本地上传 不再读取配置
+    //intervalID2 = setInterval(updata_columba_data, 36e5, ctx, "", false);
     ItemSendList = ctx.config.ItemSendList;
     for (let qqTeam in ItemSendList) {
       for (let Item in ItemSendList[qqTeam]) {
@@ -804,16 +989,26 @@ export function apply(ctx: Context, config: Config) {
       }
     }
   })
+  ctx.command("steam行情")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + output_str_steam);
+    });
   ctx.command("当前行情")
   .action(async ({ session }) => {
     if (ShortTeamList.indexOf(session.channelId) === -1)
-      session.send(h("quote", { id: session.event.message.id }) + small_output_str);
+      if (SteamTeamList.indexOf(session.channelId) !== -1)
+        session.send(h("quote", { id: session.event.message.id }) + small_output_str_steam);
+      else
+        session.send(h("quote", { id: session.event.message.id }) + small_output_str);
     else
-      session.send(short_output_str);
+      if (SteamTeamList.indexOf(session.channelId) !== -1)
+        session.send(short_output_str_steam);
+      else
+        session.send(short_output_str);
     });
   ctx.command("无海行情")
   .action(async ({ session }) => {
-    if (ShortTeamList.indexOf(session.channelId) === -1)
+    if (ShortTeamList.indexOf(session.channelId) === -1 || session.channelId in SteamTeamList)
       session.send(h("quote", { id: session.event.message.id }) + low_output_str);
     else
       session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
@@ -821,13 +1016,19 @@ export function apply(ctx: Context, config: Config) {
   ctx.command("當前行情")
   .action(async ({ session }) => {
     if (ShortTeamList.indexOf(session.channelId) === -1)
-      session.send(h("quote", { id: session.event.message.id }) + small_output_str);
+      if (SteamTeamList.indexOf(session.channelId) !== -1)
+        session.send(h("quote", { id: session.event.message.id }) + small_output_str_steam);
+      else
+        session.send(h("quote", { id: session.event.message.id }) + small_output_str);
     else
-      session.send(short_output_str);
+      if (SteamTeamList.indexOf(session.channelId) !== -1)
+        session.send(short_output_str_steam);
+      else
+        session.send(short_output_str);
     });
   ctx.command("無海行情")
   .action(async ({ session }) => {
-    if (ShortTeamList.indexOf(session.channelId) === -1)
+    if (ShortTeamList.indexOf(session.channelId) === -1 || session.channelId in SteamTeamList)
       session.send(h("quote", { id: session.event.message.id }) + low_output_str);
     else
       session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
@@ -835,14 +1036,20 @@ export function apply(ctx: Context, config: Config) {
   ctx.command("详细行情")
   .action(async ({ session }) => {
     if (ShortTeamList.indexOf(session.channelId) === -1)
-      session.send(h("quote", { id: session.event.message.id }) + output_str);
+      if (SteamTeamList.indexOf(session.channelId) !== -1)
+        session.send(h("quote", { id: session.event.message.id }) + output_str_steam);
+      else
+        session.send(h("quote", { id: session.event.message.id }) + output_str);
     else
       session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
   });
   ctx.command("詳細行情")
   .action(async ({ session }) => {
     if (ShortTeamList.indexOf(session.channelId) === -1)
-      session.send(h("quote", { id: session.event.message.id }) + output_str);
+      if (SteamTeamList.indexOf(session.channelId) !== -1)
+        session.send(h("quote", { id: session.event.message.id }) + output_str_steam);
+      else
+        session.send(h("quote", { id: session.event.message.id }) + output_str);
     else
       session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
   });
@@ -859,6 +1066,11 @@ export function apply(ctx: Context, config: Config) {
       var items_str = ""
       var short_items_str = "";
       var buyCity = []
+      var responseData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1)
+        responseData = responseDataSteam
+      else
+        responseData = responseData
       for (var goodsName in responseData){
         let nameFlag : boolean = true
         if (goodsName != item){
@@ -1069,6 +1281,11 @@ export function apply(ctx: Context, config: Config) {
       if (updataNum > 5) {
         return "数据源出现严重错误，请通知管理员处理";
       }
+      var responseData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1)
+        responseData = responseDataSteam
+      else
+        responseData = responseData
       var items_str = "";
       var buyCity = [];
       for (var goodsName in responseData) {
@@ -1178,6 +1395,11 @@ export function apply(ctx: Context, config: Config) {
       if (ShortTeamList.indexOf(session.channelId) != -1) {
         return "为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126";
       }
+      var responseData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1)
+        responseData = responseDataSteam
+      else
+        responseData = responseData
       var item = session.content.slice(2);
       item = toSimplified(item.trim());
       if (item == "") {
@@ -1336,6 +1558,11 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.command("无往不利成就")
   .action(async ({ session }) => {
+    var responseData: GetPricesProducts;
+    if (SteamTeamList.indexOf(session.channelId) !== -1)
+      responseData = responseDataSteam
+    else
+      responseData = responseData
     if (updataNum < 5){
       var sellPrice = 0
       var sellCity = ""
@@ -1373,6 +1600,11 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.middleware(async (session, next) => {
     if (session.content.includes('点石成金成就计算') && session.content[0] == "点") {
+      var responseData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1)
+        responseData = responseDataSteam
+      else
+        responseData = responseData
       var num = session.content.slice(8)
       num = num.trim()
       if (num == "")
@@ -1443,6 +1675,11 @@ export function apply(ctx: Context, config: Config) {
   ctx.command("有行情吗")
   .action(async ({ session }) => {
     if (updataNum < 5){
+      var responseData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1)
+        responseData = responseDataSteam
+      else
+        responseData = responseData
       let out_str = ""
       //console.log(min)
       //console.log(low_min)
@@ -1481,6 +1718,11 @@ export function apply(ctx: Context, config: Config) {
   ctx.command("有行情嗎")
   .action(async ({ session }) => {
     if (updataNum < 5){
+      var responseData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1)
+        responseData = responseDataSteam
+      else
+        responseData = responseData
       let out_str = ""
       //console.log(min)
       //console.log(low_min)

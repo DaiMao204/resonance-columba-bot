@@ -1,7 +1,6 @@
 import { CityName } from "../data/cicies";
 import { PRODUCTS } from "../data/products";
 import { cityList } from "../data/cicies";
-import { products_default } from "../data/products";
 import {
   FireStoreProductCityPrice,
   FirestoreProducts,

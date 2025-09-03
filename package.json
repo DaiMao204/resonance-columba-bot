@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-resonance-columba-bot",
   "description": "雷索纳斯科伦巴商会市场查询",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [

@@ -23,6 +23,18 @@ export const cityList = [
     "贡露城"
   ];
   
+export const cityListSteam = [
+    "修格里城",
+    "铁盟哨站",
+    "七号自由港",
+    "澄明数据中心",
+    "阿妮塔战备工厂",
+    "阿妮塔能源研究所",
+    "荒原站",
+    "曼德矿场",
+    "淘金乐园",
+  ];
+
 export var cityItemList = {};
 
 /*var CITY_ATTACH_LIST = {
@@ -36,8 +48,14 @@ export var cityItemList = {};
 export type CityName = (typeof cityList)[number];
 export var CITIES: CityName[] = cityList;
 
+export type CityNameSteam = (typeof cityListSteam)[number];
+export var CITIESSTEAM: CityName[] = cityListSteam;
+
+
 var cityAttachList: { [key: CityName]: CityName } = CITY_ATTACH_LIST;
 export var CITY_BELONGS_TO = cityAttachList;
+
+
 
 export function cicies_set (CITY_ATTACH_LIST){
   cityAttachList = CITY_ATTACH_LIST;

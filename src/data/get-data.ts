@@ -1,11 +1,23 @@
 import { cicies_set, cityItems_set } from "./cicies";
-import { products_set } from "./products";
+import { products_set,products_set_new } from "./products";
 import { roleSkills_set } from "./roleSkills";
-import { get_price, send_error,errorNum} from "..";
+import { get_price, send_error,errorNum,get_price_steam} from "..";
+import { cityattachlist_default,resonanceskills_default,products_default } from "../data/data"
+
 const https = require('https');
 const vm = require('vm');
 
 export async function updata_columba_data (ctx,startUrl = "", flag = false){
+    cicies_set(cityattachlist_default)
+    roleSkills_set(resonanceskills_default)
+    products_set_new(products_default)
+    if (flag) {
+        get_price();
+        get_price_steam()
+    }
+    cityItems_set()
+
+    /*
     const result = await ctx.http("https://unpkg.com/resonance-data-columba/dist/columbabuild.js", {redirect: 'manual'})
     //console.log(result.headers.get('location'))
 
@@ -51,9 +63,13 @@ export async function updata_columba_data (ctx,startUrl = "", flag = false){
                 const goodsUnlockConditions = context.module.exports.GOODS_UNLOCK_CONDITIONS;
                 const ptdDatas = context.module.exports.PRODUCTS;
                 const RESONANCE_SKILLS = context.module.exports.RESONANCE_SKILLS;
+                //console.log(CITY_ATTACH_LIST)
+                console.log(ptdDatas)    
+                console.log(products_default) 
+                //console.log(RESONANCE_SKILLS)    
                 cicies_set(CITY_ATTACH_LIST)
                 roleSkills_set(RESONANCE_SKILLS)
-                products_set(ptdDatas,goodsUnlockConditions)
+                products_set(products_default,goodsUnlockConditions)
                 if (flag) {
                     get_price();
                 }
@@ -67,5 +83,7 @@ export async function updata_columba_data (ctx,startUrl = "", flag = false){
     }
     catch{
         send_error("数据更新过程出现错误，请联系管理员。")
-    }
+    }*/
+
+    
 }

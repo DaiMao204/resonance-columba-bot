@@ -1,6 +1,7 @@
 export var cityattachlist_default = {
     荒原站: "修格里城",
     淘金乐园: "曼德矿场",
+    维蒂林场: "贡露城",
     黑月游乐城: "雪金城",
     阿妮塔战备工厂: "澄明数据中心",
     阿妮塔能源研究所: "七号自由港",
@@ -793,6 +794,59 @@ export var resonanceskills_default = {
                 }
             }
         }
+    },
+    切茜娅: {
+        "1": {
+            buyMore: {
+                city: {
+                    远星大桥: 20
+                }
+            }
+        },
+        "5": {
+            buyMore: {
+                city: {
+                    远星大桥: 30
+                }
+            }
+        }
+    },
+    朵拉弥丝: {
+        "4": {
+            buyMore: {
+                product: {
+                    斑节虾: 20,
+                    大龙虾: 20,
+                    鱿鱼: 20,
+                    带鱼: 20,
+                    帝王蟹: 20,
+                    竹荚鱼: 20,
+                    扇贝: 20,
+                    马鲛鱼: 20,
+                    贻贝: 20,
+                    象拔蚌: 20,
+                    鳕鱼: 20
+                }
+            }
+        }
+    },
+    时萝: {
+        "1": {
+            buyMore: {
+                product: {
+                    阿妮塔101民用无人机: 20,
+                    阿妮塔202军用无人机: 20
+                }
+            }
+        },
+        "5": {
+            buyMore: {
+                product: {
+                    阿妮塔101民用无人机: 30,
+                    阿妮塔202军用无人机: 30
+                }
+            }
+        }
     }
 }
 export var role_resonanceskills = {
@@ -935,6 +989,15 @@ export var role_resonanceskills = {
         resonance: 1
     },
     海伦娜: {
+        resonance: 5
+    },
+    切茜娅: {
+        resonance: 5
+    },
+    朵拉弥丝: {
+        resonance: 4
+    },
+    时萝: {
         resonance: 5
     }
 }
@@ -4499,7 +4562,7 @@ export var products_default = [
             黑月游乐城: 441
         },
         buyLot: {
-            黑月游乐城: 1
+            黑月游乐城: 36
         },
         sellPrices: {
             七号自由港: 542,
@@ -7365,7 +7428,7 @@ export var products_default = [
             黑月游乐城: 574
         },
         buyLot: {
-            黑月游乐城: 1
+            黑月游乐城: 30
         },
         sellPrices: {
             七号自由港: 723,
@@ -7484,4 +7547,3 @@ export var products_default = [
         }
     }
 ]
-

@@ -1,5 +1,5 @@
 import { Context, Schema, h, Bot, Dict } from 'koishi'
-import { cityList, cityItemList } from './data/cicies'
+import { cityList, cityItemList,cityListSteam } from './data/cicies'
 import { products_default } from './data/data'
 import { intervalTime } from './utils/time'
 import axios from 'axios';
@@ -13,6 +13,7 @@ import { PRODUCTS } from './data/products';
 import { updata_columba_data } from './data/get-data';
 import { cityItems_set } from './data/cicies';
 import { toSimplified } from './utils/chinese';
+import { it } from 'node:test';
 
 export const name = 'resonance-columba-bot'
 
@@ -543,7 +544,8 @@ export async function get_price(){
       waitTi = 0;
     }
     ItemMaxPrice = get_max_price();
-    responseData = convertFirebaseDataToGetPricesDataNew(data);
+    //console.log(ItemMaxPrice)
+    responseData = convertFirebaseDataToGetPricesDataNew(data,cityList);
 
   }
 
@@ -689,9 +691,9 @@ export async function get_price(){
     }
   }
 
-  const onegraphBuyCombinationsGo = calculateOneGraphBuyCombinations(responseData, BotConfig.maxLot, BotConfig.bargain, BotConfig.prestige, BotConfig.roles, BotConfig.productUnlockStatus, BotConfig.events);
-  const onegraphBuyCombinationsRt = calculateOneGraphBuyCombinations(responseData, BotConfig.maxLot, BotConfig.returnBargain, BotConfig.prestige, BotConfig.roles, BotConfig.productUnlockStatus, BotConfig.events);
-  const onegraphBuyCombinationsRtNoBargain = calculateOneGraphBuyCombinations(responseData, BotConfig.maxLot, BotConfigNoReturnBargain.returnBargain, BotConfig.prestige, BotConfig.roles, BotConfig.productUnlockStatus, BotConfig.events);
+  const onegraphBuyCombinationsGo = calculateOneGraphBuyCombinations(responseData, BotConfig.maxLot, BotConfig.bargain, BotConfig.prestige, BotConfig.roles, BotConfig.productUnlockStatus, BotConfig.events,CITIES);
+  const onegraphBuyCombinationsRt = calculateOneGraphBuyCombinations(responseData, BotConfig.maxLot, BotConfig.returnBargain, BotConfig.prestige, BotConfig.roles, BotConfig.productUnlockStatus, BotConfig.events,CITIES);
+  const onegraphBuyCombinationsRtNoBargain = calculateOneGraphBuyCombinations(responseData, BotConfig.maxLot, BotConfigNoReturnBargain.returnBargain, BotConfig.prestige, BotConfig.roles, BotConfig.productUnlockStatus, BotConfig.events,CITIES);
   
   //console.log(onegraphBuyCombinationsGo)
   output_str = output_str + "综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 1016货仓\n";
@@ -819,8 +821,7 @@ export async function get_price_steam(){
     intervalIDSteam = setTimeout(get_price_steam, nextTiSteam * 1e3 - tiNow * 1e3 + 25e3);
     waitTiSteam = 0;
   }
-  ItemMaxPriceSteam = get_max_price();
-  responseDataSteam = convertFirebaseDataToGetPricesDataNew(data);
+  responseDataSteam = convertFirebaseDataToGetPricesDataNew(data,cityListSteam);
 
 
   min = 0
@@ -844,9 +845,9 @@ export async function get_price_steam(){
   //console.log(responseDataSteam)
 
 
-  const onegraphBuyCombinationsGo = calculateOneGraphBuyCombinations(responseDataSteam, BotConfigSteam.maxLot, BotConfigSteam.bargain, BotConfigSteam.prestige, BotConfigSteam.roles, BotConfigSteam.productUnlockStatus, BotConfigSteam.events);
-  const onegraphBuyCombinationsRt = calculateOneGraphBuyCombinations(responseDataSteam, BotConfigSteam.maxLot, BotConfigSteam.returnBargain, BotConfigSteam.prestige, BotConfigSteam.roles, BotConfigSteam.productUnlockStatus, BotConfigSteam.events);
-  const onegraphBuyCombinationsRtNoBargain = calculateOneGraphBuyCombinations(responseDataSteam, BotConfigSteam.maxLot, BotConfigNoReturnBargainSteam.returnBargain, BotConfigSteam.prestige, BotConfigSteam.roles, BotConfigSteam.productUnlockStatus, BotConfigSteam.events);
+  const onegraphBuyCombinationsGo = calculateOneGraphBuyCombinations(responseDataSteam, BotConfigSteam.maxLot, BotConfigSteam.bargain, BotConfigSteam.prestige, BotConfigSteam.roles, BotConfigSteam.productUnlockStatus, BotConfigSteam.events,CITIESSTEAM);
+  const onegraphBuyCombinationsRt = calculateOneGraphBuyCombinations(responseDataSteam, BotConfigSteam.maxLot, BotConfigSteam.returnBargain, BotConfigSteam.prestige, BotConfigSteam.roles, BotConfigSteam.productUnlockStatus, BotConfigSteam.events,CITIESSTEAM);
+  const onegraphBuyCombinationsRtNoBargain = calculateOneGraphBuyCombinations(responseDataSteam, BotConfigSteam.maxLot, BotConfigNoReturnBargainSteam.returnBargain, BotConfigSteam.prestige, BotConfigSteam.roles, BotConfigSteam.productUnlockStatus, BotConfigSteam.events,CITIESSTEAM);
   
   //console.log(onegraphBuyCombinationsGo)
   output_str_steam = output_str_steam + "综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 800货仓\n";
@@ -1066,15 +1067,17 @@ export function apply(ctx: Context, config: Config) {
       var items_str = ""
       var short_items_str = "";
       var buyCity = []
-      var responseData: GetPricesProducts;
-      if (SteamTeamList.indexOf(session.channelId) !== -1)
-        responseData = responseDataSteam
-      else
-        responseData = responseData
-      for (var goodsName in responseData){
+      var GoodsData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1){
+        GoodsData = responseDataSteam
+      }
+      else{
+        GoodsData = responseData
+      }
+      for (var goodsName in GoodsData){
         let nameFlag : boolean = true
         if (goodsName != item){
-          if (!(item in responseData)){
+          if (!(item in GoodsData)){
             for (let str of item){
               if (goodsName.indexOf(str) == -1){
                 nameFlag = false
@@ -1089,14 +1092,14 @@ export function apply(ctx: Context, config: Config) {
         if (nameFlag){
           items_str = items_str + "查询到商品" + goodsName + "\n"
           short_items_str = goodsName;
-          //console.log(responseData[goodsName])
-          if ( responseData[goodsName]['buy'] != null && Object.keys(responseData[goodsName]['buy']).length != 0){
+          //console.log(GoodsData[goodsName])
+          if ( GoodsData[goodsName]['buy'] != null && Object.keys(GoodsData[goodsName]['buy']).length != 0){
             items_str = items_str + "\n商品购入：\n"
             //console.log(goodsName)
-            for ( var cityName in responseData[goodsName]['buy']){
-              var trend_updown = responseData[goodsName]['buy'][cityName]['trend'] === "up" ? "↑" : "↓"
-              let time = intervalTime(responseData[goodsName]['buy'][cityName]['time'])
-              items_str = items_str + cityName + " " + responseData[goodsName]['buy'][cityName]['variation'] + "%" + trend_updown + " 时间 " + time + " " +responseData[goodsName]['buy'][cityName]['price'].toString() + "\n"
+            for ( var cityName in GoodsData[goodsName]['buy']){
+              var trend_updown = GoodsData[goodsName]['buy'][cityName]['trend'] === "up" ? "↑" : "↓"
+              let time = intervalTime(GoodsData[goodsName]['buy'][cityName]['time'])
+              items_str = items_str + cityName + " " + GoodsData[goodsName]['buy'][cityName]['variation'] + "%" + trend_updown + " 时间 " + time + " " +GoodsData[goodsName]['buy'][cityName]['price'].toString() + "\n"
               buyCity.push(cityName)
             }
           }
@@ -1105,13 +1108,14 @@ export function apply(ctx: Context, config: Config) {
           for (var i = 0;i < 3;i++){
             let max_price = 0
             let max_price_city = ""
-            for (var cityName in responseData[goodsName]['sell']){
-              if (responseData[goodsName]['sell'][cityName]['variation'] == 0)
+            for (var cityName in GoodsData[goodsName]['sell']){
+
+              if (GoodsData[goodsName]['sell'][cityName]['variation'] == 0)
                 continue
               if (city_list.indexOf(cityName) != -1)
                 continue
-              if (responseData[goodsName]['sell'][cityName]['price'] > max_price){
-                max_price = responseData[goodsName]['sell'][cityName]['price']
+              if (GoodsData[goodsName]['sell'][cityName]['price'] > max_price){
+                max_price = GoodsData[goodsName]['sell'][cityName]['price']
                 max_price_city = cityName
               }
             }
@@ -1128,41 +1132,41 @@ export function apply(ctx: Context, config: Config) {
           if (buyCity.length != 0){
             if (buyCity.length > 1){
               for (var buyCityName in buyCity){
-                base_price_list.push(+responseData[goodsName]['buy'][buyCity[buyCityName]]['price'])
+                base_price_list.push(+GoodsData[goodsName]['buy'][buyCity[buyCityName]]['price'])
               }
             }
             else{
-              base_price_list.push(+responseData[goodsName]['buy'][buyCity[0]]['price'])
+              base_price_list.push(+GoodsData[goodsName]['buy'][buyCity[0]]['price'])
             }
             for ( let cityName of city_list){
-              if (responseData[goodsName]['sell'][cityName]['variation'] == 0)
+              if (GoodsData[goodsName]['sell'][cityName]['variation'] == 0)
                 continue
               let item_str = ""
-              var trend = responseData[goodsName]['sell'][cityName]['variation'] + "%"
-              var trend_updown = responseData[goodsName]['sell'][cityName]['trend'] === "up" ? "↑" : "↓"
-              var time = intervalTime(responseData[goodsName]['sell'][cityName]['time'])
+              var trend = GoodsData[goodsName]['sell'][cityName]['variation'] + "%"
+              var trend_updown = GoodsData[goodsName]['sell'][cityName]['trend'] === "up" ? "↑" : "↓"
+              var time = intervalTime(GoodsData[goodsName]['sell'][cityName]['time'])
 
               item_str = cityName + " " + trend + trend_updown + " 时间 " + time + " 利润 " 
               if (base_price_list.length > 1){
                 for (var price in base_price_list){
-                  item_str = item_str + buyCity[price][0] + Math.round(+responseData[goodsName]['sell'][cityName]['price'] * 1.2 - base_price_list[price] * 0.8) + " "
+                  item_str = item_str + buyCity[price][0] + Math.round(+GoodsData[goodsName]['sell'][cityName]['price'] * 1.2 - base_price_list[price] * 0.8) + " "
                 }
               }
               else{
-                item_str = item_str + Math.round(+responseData[goodsName]['sell'][cityName]['price'] * 1.2 - base_price_list[0] * 0.8)
+                item_str = item_str + Math.round(+GoodsData[goodsName]['sell'][cityName]['price'] * 1.2 - base_price_list[0] * 0.8)
               }
               item_list[cityName] = item_str
             }
           }else{
             for (let cityName of city_list){
-              if (responseData[goodsName]['sell'][cityName]['variation'] == 0)
+              if (GoodsData[goodsName]['sell'][cityName]['variation'] == 0)
                 continue
               let item_str = ""
-              var trend = responseData[goodsName]['sell'][cityName]['variation'] + "%"
-              var trend_updown = responseData[goodsName]['sell'][cityName]['trend'] === "up" ? "↑" : "↓"
-              var time = intervalTime(responseData[goodsName]['sell'][cityName]['time'])
+              var trend = GoodsData[goodsName]['sell'][cityName]['variation'] + "%"
+              var trend_updown = GoodsData[goodsName]['sell'][cityName]['trend'] === "up" ? "↑" : "↓"
+              var time = intervalTime(GoodsData[goodsName]['sell'][cityName]['time'])
 
-              item_str = cityName + " " + trend + trend_updown + " 时间 " + time + " 售价 " + responseData[goodsName]['sell'][cityName]['price']
+              item_str = cityName + " " + trend + trend_updown + " 时间 " + time + " 售价 " + GoodsData[goodsName]['sell'][cityName]['price']
               item_list[cityName] = item_str
             }
           }
@@ -1179,16 +1183,16 @@ export function apply(ctx: Context, config: Config) {
                 var craftGoodsPrice = 99999
                 //console.log(craftGood)
                 //console.log(craftGood)
-                if (craftGood in responseData && Object.keys(responseData[craftGood]['buy']).length != 0){
-                  //console.log(responseData[craftGood])
-                  for (var cityName in responseData[craftGood]['buy']){
-                    //console.log(responseData[craftGood]['buy'])
-                    if(responseData[craftGood]['buy'][cityName].price < craftGoodsPrice){
-                      let trend = responseData[craftGood]['buy'][cityName]['variation'] + "%"
-                      let trend_updown = responseData[craftGood]['buy'][cityName]['trend'] === "up" ? "↑" : "↓"
-                      let time = intervalTime(responseData[craftGood]['buy'][cityName]['time'])
+                if (craftGood in GoodsData && Object.keys(GoodsData[craftGood]['buy']).length != 0){
+                  //console.log(GoodsData[craftGood])
+                  for (var cityName in GoodsData[craftGood]['buy']){
+                    //console.log(GoodsData[craftGood]['buy'])
+                    if(GoodsData[craftGood]['buy'][cityName].price < craftGoodsPrice){
+                      let trend = GoodsData[craftGood]['buy'][cityName]['variation'] + "%"
+                      let trend_updown = GoodsData[craftGood]['buy'][cityName]['trend'] === "up" ? "↑" : "↓"
+                      let time = intervalTime(GoodsData[craftGood]['buy'][cityName]['time'])
                       craftBuyCity = cityName
-                      craftGoodsPrice = responseData[craftGood]['buy'][cityName].price
+                      craftGoodsPrice = GoodsData[craftGood]['buy'][cityName].price
                       items_str = items_str + craftGood + " " + cityName + " " + trend + trend_updown + " 时间 " + time + " " + craftGoodsPrice + "\n"
                     }
                   }
@@ -1200,21 +1204,21 @@ export function apply(ctx: Context, config: Config) {
                 }
                 base_price_list.push(base_price)
                 for ( let cityName of city_list){
-                  if (responseData[goodsName]['sell'][cityName]['variation'] == 0)
+                  if (GoodsData[goodsName]['sell'][cityName]['variation'] == 0)
                     continue
-                  var trend = responseData[goodsName]['sell'][cityName]['variation'] + "%"
-                  var trend_updown = responseData[goodsName]['sell'][cityName]['trend'] === "up" ? "↑" : "↓"
-                  var time = intervalTime(responseData[goodsName]['sell'][cityName]['time'])
+                  var trend = GoodsData[goodsName]['sell'][cityName]['variation'] + "%"
+                  var trend_updown = GoodsData[goodsName]['sell'][cityName]['trend'] === "up" ? "↑" : "↓"
+                  var time = intervalTime(GoodsData[goodsName]['sell'][cityName]['time'])
                   if (!(cityName in item_list ))
                     item_list[cityName] = cityName + " " + trend + trend_updown + " 时间 " + time
                   if (base_price_list.length > 1){
                     for (var price in base_price_list){
-                      item_list[cityName] = item_list[cityName] + " 制造物利润 " + Math.round(+responseData[goodsName]['sell'][cityName]['price'] * 1.2 - base_price_list[price] * 0.8)
+                      item_list[cityName] = item_list[cityName] + " 制造物利润 " + Math.round(+GoodsData[goodsName]['sell'][cityName]['price'] * 1.2 - base_price_list[price] * 0.8)
                     }
                   }
                   else{
-                    item_list[cityName] = item_list[cityName] + " 制造物利润 " + Math.round(+responseData[goodsName]['sell'][cityName]['price'] * 1.2 - base_price_list[0] * 0.8)
-                    //console.log(responseData[goodsName]['sell'][cityName]['price'], base_price_list[0])
+                    item_list[cityName] = item_list[cityName] + " 制造物利润 " + Math.round(+GoodsData[goodsName]['sell'][cityName]['price'] * 1.2 - base_price_list[0] * 0.8)
+                    //console.log(GoodsData[goodsName]['sell'][cityName]['price'], base_price_list[0])
                   }
               }
             }
@@ -1245,12 +1249,12 @@ export function apply(ctx: Context, config: Config) {
             short_items_str = "为维护本群聊天环境不支持查询城市\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126";
             items_str = items_str + "查询到城市" + cityName + "\n\n"
             for (let goodsName in cityItemList[cityName]){
-              if(!(cityName in responseData[cityItemList[cityName][goodsName]]['buy']))
+              if(!(cityName in GoodsData[cityItemList[cityName][goodsName]]['buy']))
                 continue
               //console.log(cityItemList[cityName][goodsName])
-              var trend_updown = responseData[cityItemList[cityName][goodsName]]['buy'][cityName]['trend'] === "up" ? "↑" : "↓"
-              let time = intervalTime(responseData[cityItemList[cityName][goodsName]]['buy'][cityName]['time'])
-              items_str = items_str + cityItemList[cityName][goodsName] + " " + responseData[cityItemList[cityName][goodsName]]['buy'][cityName]['variation'] + "%" + trend_updown + " 时间 " + time + " " +responseData[cityItemList[cityName][goodsName]]['buy'][cityName]['price'].toString() + "\n"
+              var trend_updown = GoodsData[cityItemList[cityName][goodsName]]['buy'][cityName]['trend'] === "up" ? "↑" : "↓"
+              let time = intervalTime(GoodsData[cityItemList[cityName][goodsName]]['buy'][cityName]['time'])
+              items_str = items_str + cityItemList[cityName][goodsName] + " " + GoodsData[cityItemList[cityName][goodsName]]['buy'][cityName]['variation'] + "%" + trend_updown + " 时间 " + time + " " +GoodsData[cityItemList[cityName][goodsName]]['buy'][cityName]['price'].toString() + "\n"
             }
             break
           }
@@ -1281,17 +1285,19 @@ export function apply(ctx: Context, config: Config) {
       if (updataNum > 5) {
         return "数据源出现严重错误，请通知管理员处理";
       }
-      var responseData: GetPricesProducts;
-      if (SteamTeamList.indexOf(session.channelId) !== -1)
-        responseData = responseDataSteam
-      else
-        responseData = responseData
+      var GoodsData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1){
+        GoodsData = responseDataSteam
+      }
+      else{
+        GoodsData = responseData
+      }
       var items_str = "";
       var buyCity = [];
-      for (var goodsName in responseData) {
+      for (var goodsName in GoodsData) {
         let nameFlag = true;
         if (goodsName != item) {
-          if (!(item in responseData)) {
+          if (!(item in GoodsData)) {
             for (let str of item) {
               if (goodsName.indexOf(str) == -1) {
                 nameFlag = false;
@@ -1304,12 +1310,12 @@ export function apply(ctx: Context, config: Config) {
         }
         if (nameFlag) {
           items_str = items_str + "查询到商品" + goodsName + "\n";
-          if (responseData[goodsName]["buy"] != null && Object.keys(responseData[goodsName]["buy"]).length != 0) {
+          if (GoodsData[goodsName]["buy"] != null && Object.keys(GoodsData[goodsName]["buy"]).length != 0) {
             items_str = items_str + "商品购入：\n";
-            for (var cityName in responseData[goodsName]["buy"]) {
-              var trend_updown = responseData[goodsName]["buy"][cityName]["trend"] === "up" ? "↑" : "↓";
-              let time = intervalTime(responseData[goodsName]["buy"][cityName]["time"]);
-              items_str = items_str + cityName + " " + responseData[goodsName]["buy"][cityName]["variation"] + "%" + trend_updown + " 时间 " + time + " " + responseData[goodsName]["buy"][cityName]["price"].toString() + "\n";
+            for (var cityName in GoodsData[goodsName]["buy"]) {
+              var trend_updown = GoodsData[goodsName]["buy"][cityName]["trend"] === "up" ? "↑" : "↓";
+              let time = intervalTime(GoodsData[goodsName]["buy"][cityName]["time"]);
+              items_str = items_str + cityName + " " + GoodsData[goodsName]["buy"][cityName]["variation"] + "%" + trend_updown + " 时间 " + time + " " + GoodsData[goodsName]["buy"][cityName]["price"].toString() + "\n";
               buyCity.push(cityName);
             }
           }
@@ -1317,13 +1323,14 @@ export function apply(ctx: Context, config: Config) {
           for (var i = 0; i < 3; i++) {
             let max_price = 0;
             let max_price_city = "";
-            for (var cityName in responseData[goodsName]["sell"]) {
-              if (responseData[goodsName]["sell"][cityName]["variation"] == 0)
+            for (var cityName in GoodsData[goodsName]["sell"]) {
+
+              if (GoodsData[goodsName]["sell"][cityName]["variation"] == 0)
                 continue;
               if (city_list.indexOf(cityName) != -1)
                 continue;
-              if (responseData[goodsName]["sell"][cityName]["price"] > max_price) {
-                max_price = responseData[goodsName]["sell"][cityName]["price"];
+              if (GoodsData[goodsName]["sell"][cityName]["price"] > max_price) {
+                max_price = GoodsData[goodsName]["sell"][cityName]["price"];
                 max_price_city = cityName;
               }
             }
@@ -1339,14 +1346,14 @@ export function apply(ctx: Context, config: Config) {
               for (var craftGood in PRODUCTS[good]["craft"]) {
                 var craftBuyCity = "";
                 var craftGoodsPrice = 99999;
-                if (craftGood in responseData && Object.keys(responseData[craftGood]["buy"]).length != 0) {
-                  for (var cityName in responseData[craftGood]["buy"]) {
-                    if (responseData[craftGood]["buy"][cityName].price < craftGoodsPrice) {
-                      let trend = responseData[craftGood]["buy"][cityName]["variation"] + "%";
-                      let trend_updown2 = responseData[craftGood]["buy"][cityName]["trend"] === "up" ? "↑" : "↓";
-                      let time = intervalTime(responseData[craftGood]["buy"][cityName]["time"]);
+                if (craftGood in GoodsData && Object.keys(GoodsData[craftGood]["buy"]).length != 0) {
+                  for (var cityName in GoodsData[craftGood]["buy"]) {
+                    if (GoodsData[craftGood]["buy"][cityName].price < craftGoodsPrice) {
+                      let trend = GoodsData[craftGood]["buy"][cityName]["variation"] + "%";
+                      let trend_updown2 = GoodsData[craftGood]["buy"][cityName]["trend"] === "up" ? "↑" : "↓";
+                      let time = intervalTime(GoodsData[craftGood]["buy"][cityName]["time"]);
                       craftBuyCity = cityName;
-                      craftGoodsPrice = responseData[craftGood]["buy"][cityName].price;
+                      craftGoodsPrice = GoodsData[craftGood]["buy"][cityName].price;
                       items_str = items_str + craftGood + " " + cityName + " " + trend + trend_updown2 + " 时间 " + time + " " + craftGoodsPrice + "\n";
                     }
                   }
@@ -1372,11 +1379,11 @@ export function apply(ctx: Context, config: Config) {
           if (nameFlag) {
             items_str = items_str + "查询到城市" + cityName2 + "\n\n";
             for (let goodsName2 in cityItemList[cityName2]) {
-              if (!(cityName2 in responseData[cityItemList[cityName2][goodsName2]]["buy"]))
+              if (!(cityName2 in GoodsData[cityItemList[cityName2][goodsName2]]["buy"]))
                 continue;
-              var trend_updown = responseData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["trend"] === "up" ? "↑" : "↓";
-              let time = intervalTime(responseData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["time"]);
-              items_str = items_str + cityItemList[cityName2][goodsName2] + " " + responseData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["variation"] + "%" + trend_updown + " 时间 " + time + " " + responseData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["price"].toString() + "\n";
+              var trend_updown = GoodsData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["trend"] === "up" ? "↑" : "↓";
+              let time = intervalTime(GoodsData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["time"]);
+              items_str = items_str + cityItemList[cityName2][goodsName2] + " " + GoodsData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["variation"] + "%" + trend_updown + " 时间 " + time + " " + GoodsData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["price"].toString() + "\n";
             }
             break;
           }
@@ -1395,11 +1402,13 @@ export function apply(ctx: Context, config: Config) {
       if (ShortTeamList.indexOf(session.channelId) != -1) {
         return "为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126";
       }
-      var responseData: GetPricesProducts;
-      if (SteamTeamList.indexOf(session.channelId) !== -1)
-        responseData = responseDataSteam
-      else
-        responseData = responseData
+      var GoodsData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1){
+        GoodsData = responseDataSteam
+      }
+      else{
+        GoodsData = responseData
+      }
       var item = session.content.slice(2);
       item = toSimplified(item.trim());
       if (item == "") {
@@ -1410,10 +1419,10 @@ export function apply(ctx: Context, config: Config) {
       }
       var items_str = "";
       var buyCity = [];
-      for (var goodsName in responseData) {
+      for (var goodsName in GoodsData) {
         let nameFlag = true;
         if (goodsName != item) {
-          if (!(item in responseData)) {
+          if (!(item in GoodsData)) {
             for (let str of item) {
               if (goodsName.indexOf(str) == -1) {
                 nameFlag = false;
@@ -1426,12 +1435,12 @@ export function apply(ctx: Context, config: Config) {
         }
         if (nameFlag) {
           items_str = items_str + "查询到商品" + goodsName + "\n";
-          if (responseData[goodsName]["buy"] != null && Object.keys(responseData[goodsName]["buy"]).length != 0) {
+          if (GoodsData[goodsName]["buy"] != null && Object.keys(GoodsData[goodsName]["buy"]).length != 0) {
             items_str = items_str + "\n商品购入：\n";
-            for (var cityName in responseData[goodsName]["buy"]) {
-              var trend_updown = responseData[goodsName]["buy"][cityName]["trend"] === "up" ? "↑" : "↓";
-              let time2 = intervalTime(responseData[goodsName]["buy"][cityName]["time"]);
-              items_str = items_str + cityName + " " + responseData[goodsName]["buy"][cityName]["variation"] + "%" + trend_updown + " 时间 " + time2 + " " + responseData[goodsName]["buy"][cityName]["price"].toString() + "\n";
+            for (var cityName in GoodsData[goodsName]["buy"]) {
+              var trend_updown = GoodsData[goodsName]["buy"][cityName]["trend"] === "up" ? "↑" : "↓";
+              let time2 = intervalTime(GoodsData[goodsName]["buy"][cityName]["time"]);
+              items_str = items_str + cityName + " " + GoodsData[goodsName]["buy"][cityName]["variation"] + "%" + trend_updown + " 时间 " + time2 + " " + GoodsData[goodsName]["buy"][cityName]["price"].toString() + "\n";
               buyCity.push(cityName);
             }
           }
@@ -1440,37 +1449,37 @@ export function apply(ctx: Context, config: Config) {
           if (buyCity.length != 0) {
             if (buyCity.length > 1) {
               for (var buyCityName in buyCity) {
-                base_price_list.push(+responseData[goodsName]["buy"][buyCity[buyCityName]]["price"]);
+                base_price_list.push(+GoodsData[goodsName]["buy"][buyCity[buyCityName]]["price"]);
               }
             } else {
-              base_price_list.push(+responseData[goodsName]["buy"][buyCity[0]]["price"]);
+              base_price_list.push(+GoodsData[goodsName]["buy"][buyCity[0]]["price"]);
             }
-            for (var cityName in responseData[goodsName]["sell"]) {
-              if (responseData[goodsName]["sell"][cityName]["variation"] == 0)
+            for (var cityName in GoodsData[goodsName]["sell"]) {
+              if (GoodsData[goodsName]["sell"][cityName]["variation"] == 0)
                 continue;
               let item_str = "";
-              var trend = responseData[goodsName]["sell"][cityName]["variation"] + "%";
-              var trend_updown = responseData[goodsName]["sell"][cityName]["trend"] === "up" ? "↑" : "↓";
-              var time = intervalTime(responseData[goodsName]["sell"][cityName]["time"]);
+              var trend = GoodsData[goodsName]["sell"][cityName]["variation"] + "%";
+              var trend_updown = GoodsData[goodsName]["sell"][cityName]["trend"] === "up" ? "↑" : "↓";
+              var time = intervalTime(GoodsData[goodsName]["sell"][cityName]["time"]);
               item_str = cityName + " " + trend + trend_updown + " 时间 " + time + " 利润 ";
               if (base_price_list.length > 1) {
                 for (var price in base_price_list) {
-                  item_str = item_str + buyCity[price][0] + Math.round(+responseData[goodsName]["sell"][cityName]["price"] * 1.2 - base_price_list[price] * 0.8) + " ";
+                  item_str = item_str + buyCity[price][0] + Math.round(+GoodsData[goodsName]["sell"][cityName]["price"] * 1.2 - base_price_list[price] * 0.8) + " ";
                 }
               } else {
-                item_str = item_str + Math.round(+responseData[goodsName]["sell"][cityName]["price"] * 1.2 - base_price_list[0] * 0.8);
+                item_str = item_str + Math.round(+GoodsData[goodsName]["sell"][cityName]["price"] * 1.2 - base_price_list[0] * 0.8);
               }
               item_list[cityName] = item_str;
             }
           } else {
-            for (var cityName in responseData[goodsName]["sell"]) {
-              if (responseData[goodsName]["sell"][cityName]["variation"] == 0)
+            for (var cityName in GoodsData[goodsName]["sell"]) {
+              if (GoodsData[goodsName]["sell"][cityName]["variation"] == 0)
                 continue;
               let item_str = "";
-              var trend = responseData[goodsName]["sell"][cityName]["variation"] + "%";
-              var trend_updown = responseData[goodsName]["sell"][cityName]["trend"] === "up" ? "↑" : "↓";
-              var time = intervalTime(responseData[goodsName]["sell"][cityName]["time"]);
-              item_str = cityName + " " + trend + trend_updown + " 时间 " + time + " 售价 " + responseData[goodsName]["sell"][cityName]["price"];
+              var trend = GoodsData[goodsName]["sell"][cityName]["variation"] + "%";
+              var trend_updown = GoodsData[goodsName]["sell"][cityName]["trend"] === "up" ? "↑" : "↓";
+              var time = intervalTime(GoodsData[goodsName]["sell"][cityName]["time"]);
+              item_str = cityName + " " + trend + trend_updown + " 时间 " + time + " 售价 " + GoodsData[goodsName]["sell"][cityName]["price"];
               item_list[cityName] = item_str;
             }
           }
@@ -1484,14 +1493,14 @@ export function apply(ctx: Context, config: Config) {
               for (var craftGood in PRODUCTS[good]["craft"]) {
                 var craftBuyCity = "";
                 var craftGoodsPrice = 99999;
-                if (craftGood in responseData && Object.keys(responseData[craftGood]["buy"]).length != 0) {
-                  for (var cityName in responseData[craftGood]["buy"]) {
-                    if (responseData[craftGood]["buy"][cityName].price < craftGoodsPrice) {
-                      let trend2 = responseData[craftGood]["buy"][cityName]["variation"] + "%";
-                      let trend_updown2 = responseData[craftGood]["buy"][cityName]["trend"] === "up" ? "↑" : "↓";
-                      let time2 = intervalTime(responseData[craftGood]["buy"][cityName]["time"]);
+                if (craftGood in GoodsData && Object.keys(GoodsData[craftGood]["buy"]).length != 0) {
+                  for (var cityName in GoodsData[craftGood]["buy"]) {
+                    if (GoodsData[craftGood]["buy"][cityName].price < craftGoodsPrice) {
+                      let trend2 = GoodsData[craftGood]["buy"][cityName]["variation"] + "%";
+                      let trend_updown2 = GoodsData[craftGood]["buy"][cityName]["trend"] === "up" ? "↑" : "↓";
+                      let time2 = intervalTime(GoodsData[craftGood]["buy"][cityName]["time"]);
                       craftBuyCity = cityName;
-                      craftGoodsPrice = responseData[craftGood]["buy"][cityName].price;
+                      craftGoodsPrice = GoodsData[craftGood]["buy"][cityName].price;
                       items_str = items_str + craftGood + " " + cityName + " " + trend2 + trend_updown2 + " 时间 " + time2 + " " + craftGoodsPrice + "\n";
                     }
                   }
@@ -1501,20 +1510,20 @@ export function apply(ctx: Context, config: Config) {
                 }
               }
               base_price_list.push(base_price);
-              for (var cityName in responseData[goodsName]["sell"]) {
-                if (responseData[goodsName]["sell"][cityName]["variation"] == 0)
+              for (var cityName in GoodsData[goodsName]["sell"]) {
+                if (GoodsData[goodsName]["sell"][cityName]["variation"] == 0)
                   continue;
-                var trend = responseData[goodsName]["sell"][cityName]["variation"] + "%";
-                var trend_updown = responseData[goodsName]["sell"][cityName]["trend"] === "up" ? "↑" : "↓";
-                var time = intervalTime(responseData[goodsName]["sell"][cityName]["time"]);
+                var trend = GoodsData[goodsName]["sell"][cityName]["variation"] + "%";
+                var trend_updown = GoodsData[goodsName]["sell"][cityName]["trend"] === "up" ? "↑" : "↓";
+                var time = intervalTime(GoodsData[goodsName]["sell"][cityName]["time"]);
                 if (!(cityName in item_list))
                   item_list[cityName] = cityName + " " + trend + trend_updown + " 时间 " + time;
                 if (base_price_list.length > 1) {
                   for (var price in base_price_list) {
-                    item_list[cityName] = item_list[cityName] + " 制造物利润 " + Math.round(+responseData[goodsName]["sell"][cityName]["price"] * 1.2 - base_price_list[price] * 0.8);
+                    item_list[cityName] = item_list[cityName] + " 制造物利润 " + Math.round(+GoodsData[goodsName]["sell"][cityName]["price"] * 1.2 - base_price_list[price] * 0.8);
                   }
                 } else {
-                  item_list[cityName] = item_list[cityName] + " 制造物利润 " + Math.round(+responseData[goodsName]["sell"][cityName]["price"] * 1.2 - base_price_list[0] * 0.8);
+                  item_list[cityName] = item_list[cityName] + " 制造物利润 " + Math.round(+GoodsData[goodsName]["sell"][cityName]["price"] * 1.2 - base_price_list[0] * 0.8);
                 }
               }
             }
@@ -1538,11 +1547,11 @@ export function apply(ctx: Context, config: Config) {
           if (nameFlag) {
             items_str = items_str + "查询到城市" + cityName2 + "\n\n";
             for (let goodsName2 in cityItemList[cityName2]) {
-              if (!(cityName2 in responseData[cityItemList[cityName2][goodsName2]]["buy"]))
+              if (!(cityName2 in GoodsData[cityItemList[cityName2][goodsName2]]["buy"]))
                 continue;
-              var trend_updown = responseData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["trend"] === "up" ? "↑" : "↓";
-              let time2 = intervalTime(responseData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["time"]);
-              items_str = items_str + cityItemList[cityName2][goodsName2] + " " + responseData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["variation"] + "%" + trend_updown + " 时间 " + time2 + " " + responseData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["price"].toString() + "\n";
+              var trend_updown = GoodsData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["trend"] === "up" ? "↑" : "↓";
+              let time2 = intervalTime(GoodsData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["time"]);
+              items_str = items_str + cityItemList[cityName2][goodsName2] + " " + GoodsData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["variation"] + "%" + trend_updown + " 时间 " + time2 + " " + GoodsData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["price"].toString() + "\n";
             }
             break;
           }
@@ -1558,28 +1567,30 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.command("无往不利成就")
   .action(async ({ session }) => {
-    var responseData: GetPricesProducts;
-    if (SteamTeamList.indexOf(session.channelId) !== -1)
-      responseData = responseDataSteam
-    else
-      responseData = responseData
+      var GoodsData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1){
+        GoodsData = responseDataSteam
+      }
+      else{
+        GoodsData = responseData
+      }
     if (updataNum < 5){
       var sellPrice = 0
       var sellCity = ""
       var sellVariation = ""
       var sellTrend_updown = ""
-      for (var cityName in responseData["纯金线材"]['sell']){
-          if ( responseData["纯金线材"]['sell'][cityName].price > sellPrice){
-            sellPrice = responseData["纯金线材"]['sell'][cityName].price
+      for (var cityName in GoodsData["纯金线材"]['sell']){
+          if ( GoodsData["纯金线材"]['sell'][cityName].price > sellPrice){
+            sellPrice = GoodsData["纯金线材"]['sell'][cityName].price
             sellCity = cityName
-            sellVariation = +responseData['纯金线材']['sell'][cityName].variation + "%"
-            sellTrend_updown = responseData['纯金线材']['sell'][cityName].trend === "up" ? "↑" : "↓"
+            sellVariation = +GoodsData['纯金线材']['sell'][cityName].variation + "%"
+            sellTrend_updown = GoodsData['纯金线材']['sell'][cityName].trend === "up" ? "↑" : "↓"
           }
       }
 
-      var buyPrice = responseData['沙金']['buy']['淘金乐园'].price
-      var buyVariation = +responseData['沙金']['buy']['淘金乐园'].variation + "%"
-      var buyTrend_updown = responseData['沙金']['buy']['淘金乐园'].trend === "up" ? "↑" : "↓"
+      var buyPrice = GoodsData['沙金']['buy']['淘金乐园'].price
+      var buyVariation = +GoodsData['沙金']['buy']['淘金乐园'].variation + "%"
+      var buyTrend_updown = GoodsData['沙金']['buy']['淘金乐园'].trend === "up" ? "↑" : "↓"
 
       var price = Math.round(sellPrice * 1.2 - buyPrice * 0.75 * 0.8)
       //console.log(sellPrice, buyPrice)
@@ -1600,11 +1611,13 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.middleware(async (session, next) => {
     if (session.content.includes('点石成金成就计算') && session.content[0] == "点") {
-      var responseData: GetPricesProducts;
-      if (SteamTeamList.indexOf(session.channelId) !== -1)
-        responseData = responseDataSteam
-      else
-        responseData = responseData
+      var GoodsData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1){
+        GoodsData = responseDataSteam
+      }
+      else{
+        GoodsData = responseData
+      }
       var num = session.content.slice(8)
       num = num.trim()
       if (num == "")
@@ -1617,18 +1630,18 @@ export function apply(ctx: Context, config: Config) {
       var sellCity = ""
       var sellVariation = ""
       var sellTrend_updown = ""
-      for (var cityName in responseData["纯金线材"]['sell']){
-          if ( responseData["纯金线材"]['sell'][cityName].price > sellPrice){
-            sellPrice = responseData["纯金线材"]['sell'][cityName].price
+      for (var cityName in GoodsData["纯金线材"]['sell']){
+          if ( GoodsData["纯金线材"]['sell'][cityName].price > sellPrice){
+            sellPrice = GoodsData["纯金线材"]['sell'][cityName].price
             sellCity = cityName
-            sellVariation = +responseData['纯金线材']['sell'][cityName].variation + "%"
-            sellTrend_updown = responseData['纯金线材']['sell'][cityName].trend === "up" ? "↑" : "↓"
+            sellVariation = +GoodsData['纯金线材']['sell'][cityName].variation + "%"
+            sellTrend_updown = GoodsData['纯金线材']['sell'][cityName].trend === "up" ? "↑" : "↓"
           }
       }
 
-      var buyPrice = responseData['沙金']['buy']['淘金乐园'].price
-      var buyVariation = +responseData['沙金']['buy']['淘金乐园'].variation + "%"
-      var buyTrend_updown = responseData['沙金']['buy']['淘金乐园'].trend === "up" ? "↑" : "↓"
+      var buyPrice = GoodsData['沙金']['buy']['淘金乐园'].price
+      var buyVariation = +GoodsData['沙金']['buy']['淘金乐园'].variation + "%"
+      var buyTrend_updown = GoodsData['沙金']['buy']['淘金乐园'].trend === "up" ? "↑" : "↓"
 
       var price = Math.round(sellPrice * 1.2 - buyPrice * 0.75 * 0.8)
       //console.log(sellPrice, buyPrice)
@@ -1675,11 +1688,13 @@ export function apply(ctx: Context, config: Config) {
   ctx.command("有行情吗")
   .action(async ({ session }) => {
     if (updataNum < 5){
-      var responseData: GetPricesProducts;
-      if (SteamTeamList.indexOf(session.channelId) !== -1)
-        responseData = responseDataSteam
-      else
-        responseData = responseData
+      var GoodsData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1){
+        GoodsData = responseDataSteam
+      }
+      else{
+        GoodsData = responseData
+      }
       let out_str = ""
       //console.log(min)
       //console.log(low_min)
@@ -1718,11 +1733,13 @@ export function apply(ctx: Context, config: Config) {
   ctx.command("有行情嗎")
   .action(async ({ session }) => {
     if (updataNum < 5){
-      var responseData: GetPricesProducts;
-      if (SteamTeamList.indexOf(session.channelId) !== -1)
-        responseData = responseDataSteam
-      else
-        responseData = responseData
+      var GoodsData: GetPricesProducts;
+      if (SteamTeamList.indexOf(session.channelId) !== -1){
+        GoodsData = responseDataSteam
+      }
+      else{
+        GoodsData = responseData
+      }
       let out_str = ""
       //console.log(min)
       //console.log(low_min)

@@ -759,6 +759,40 @@ export var resonanceskills_default = {
                 }
             }
         }
+    },
+    海伦娜: {
+        "1": {
+            buyMore: {
+                product: {
+                    珍珠: 20,
+                    琥珀: 20,
+                    孔雀石: 20,
+                    绿松石: 20,
+                    玛瑙: 20,
+                    青金石: 20,
+                    火澄石: 20,
+                    红宝石: 20,
+                    蓝宝石: 20,
+                    绿宝石: 20
+                }
+            }
+        },
+        "5": {
+            buyMore: {
+                product: {
+                    珍珠: 30,
+                    琥珀: 30,
+                    孔雀石: 30,
+                    绿松石: 30,
+                    玛瑙: 30,
+                    青金石: 30,
+                    火澄石: 30,
+                    红宝石: 30,
+                    蓝宝石: 30,
+                    绿宝石: 30
+                }
+            }
+        }
     }
 }
 export var role_resonanceskills = {
@@ -899,6 +933,9 @@ export var role_resonanceskills = {
     },
     斯洛卡伊: {
         resonance: 1
+    },
+    海伦娜: {
+        resonance: 5
     }
 }
 export var products_default = [
@@ -931,8 +968,7 @@ export var products_default = [
             黑月游乐城: 145,
             七号自由港: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "坚果",
@@ -963,8 +999,7 @@ export var products_default = [
             黑月游乐城: 258,
             七号自由港: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "海盐",
@@ -995,8 +1030,7 @@ export var products_default = [
             黑月游乐城: 109,
             七号自由港: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "斑节虾",
@@ -1027,8 +1061,7 @@ export var products_default = [
             黑月游乐城: 976,
             七号自由港: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "航天纪念品",
@@ -1059,8 +1092,7 @@ export var products_default = [
             黑月游乐城: 925,
             七号自由港: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "电子配件",
@@ -1091,8 +1123,7 @@ export var products_default = [
             黑月游乐城: 1219,
             七号自由港: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "铁轨用特种钢材",
@@ -1157,8 +1188,7 @@ export var products_default = [
             黑月游乐城: 36,
             曼德矿场: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "黄铜",
@@ -1189,8 +1219,7 @@ export var products_default = [
             黑月游乐城: 694,
             曼德矿场: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "建材",
@@ -1221,8 +1250,7 @@ export var products_default = [
             黑月游乐城: 522,
             曼德矿场: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "铁矿石",
@@ -1255,8 +1283,7 @@ export var products_default = [
             曼德矿场: null,
             淘金乐园: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "石材",
@@ -1287,8 +1314,7 @@ export var products_default = [
             黑月游乐城: 216,
             曼德矿场: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "曼德工具箱",
@@ -1319,8 +1345,7 @@ export var products_default = [
             黑月游乐城: 1285,
             曼德矿场: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "水晶工艺品",
@@ -1351,8 +1376,7 @@ export var products_default = [
             黑月游乐城: 992,
             贡露城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "化妆品",
@@ -1383,8 +1407,7 @@ export var products_default = [
             黑月游乐城: 880,
             贡露城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "轻奢女装",
@@ -1451,8 +1474,7 @@ export var products_default = [
             黑月游乐城: 206,
             贡露城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "火腿",
@@ -1483,8 +1505,7 @@ export var products_default = [
             黑月游乐城: 2722,
             贡露城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "香水",
@@ -1515,8 +1536,7 @@ export var products_default = [
             黑月游乐城: 1711,
             贡露城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "鱼子酱",
@@ -1547,8 +1567,7 @@ export var products_default = [
             黑月游乐城: 5198,
             贡露城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "高端护肤品",
@@ -1579,8 +1598,7 @@ export var products_default = [
             黑月游乐城: 3904,
             贡露城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "珍珠",
@@ -1611,8 +1629,7 @@ export var products_default = [
             黑月游乐城: 5360,
             海角城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "大龙虾",
@@ -1643,8 +1660,7 @@ export var products_default = [
             黑月游乐城: 1620,
             海角城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "海角辣椒",
@@ -1675,8 +1691,7 @@ export var products_default = [
             黑月游乐城: 127,
             海角城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "鱿鱼",
@@ -1707,8 +1722,7 @@ export var products_default = [
             黑月游乐城: 318,
             海角城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "带鱼",
@@ -1739,8 +1753,7 @@ export var products_default = [
             黑月游乐城: 415,
             海角城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "行李箱包",
@@ -1771,8 +1784,7 @@ export var products_default = [
             黑月游乐城: 629,
             海角城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "桦石发财树",
@@ -1803,8 +1815,7 @@ export var products_default = [
             黑月游乐城: 5670,
             七号自由港: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "石墨烯",
@@ -1869,8 +1880,7 @@ export var products_default = [
             黑月游乐城: 2218,
             七号自由港: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "发动机",
@@ -1901,8 +1911,7 @@ export var products_default = [
             黑月游乐城: 3666,
             修格里城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "弹丸加速装置",
@@ -1935,8 +1944,7 @@ export var products_default = [
             修格里城: null,
             铁盟哨站: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "家电",
@@ -1967,8 +1975,7 @@ export var products_default = [
             黑月游乐城: 1186,
             修格里城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "汽配零件",
@@ -1999,8 +2006,7 @@ export var products_default = [
             黑月游乐城: 792,
             修格里城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "红茶",
@@ -2031,8 +2037,7 @@ export var products_default = [
             黑月游乐城: 894,
             修格里城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "高档餐具",
@@ -2063,8 +2068,7 @@ export var products_default = [
             黑月游乐城: 408,
             修格里城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "沃德烤鸡",
@@ -2095,8 +2099,7 @@ export var products_default = [
             黑月游乐城: 474,
             修格里城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "罐头",
@@ -2127,8 +2130,7 @@ export var products_default = [
             黑月游乐城: 119,
             修格里城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "沃德山泉",
@@ -2159,8 +2161,7 @@ export var products_default = [
             黑月游乐城: 73,
             修格里城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "钢筋混凝土轨枕",
@@ -2191,8 +2192,7 @@ export var products_default = [
             黑月游乐城: 664,
             曼德矿场: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "橄榄油",
@@ -2223,8 +2223,7 @@ export var products_default = [
             黑月游乐城: 386,
             贡露城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "单晶硅",
@@ -2255,8 +2254,7 @@ export var products_default = [
             黑月游乐城: 2368,
             海角城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "学会书籍",
@@ -2287,8 +2285,7 @@ export var products_default = [
             黑月游乐城: 1140,
             海角城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "户外用品",
@@ -2319,8 +2316,7 @@ export var products_default = [
             黑月游乐城: 472,
             海角城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "白兰地",
@@ -2351,8 +2347,7 @@ export var products_default = [
             黑月游乐城: 1076,
             贡露城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "琥珀",
@@ -2383,8 +2378,7 @@ export var products_default = [
             黑月游乐城: 2822,
             荒原站: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "孔雀石",
@@ -2415,8 +2409,7 @@ export var products_default = [
             黑月游乐城: 2079,
             荒原站: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "绿松石",
@@ -2447,8 +2440,7 @@ export var products_default = [
             黑月游乐城: 1487,
             荒原站: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "铅矿石",
@@ -2479,8 +2471,7 @@ export var products_default = [
             黑月游乐城: 759,
             荒原站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "石墨",
@@ -2511,8 +2502,7 @@ export var products_default = [
             黑月游乐城: 430,
             荒原站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "靛红五月军用食品",
@@ -2543,8 +2533,7 @@ export var products_default = [
             黑月游乐城: 204,
             铁盟哨站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "土豆",
@@ -2575,8 +2564,7 @@ export var products_default = [
             黑月游乐城: 81,
             荒原站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "沙金",
@@ -2607,8 +2595,7 @@ export var products_default = [
             黑月游乐城: 3186,
             淘金乐园: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "玛瑙",
@@ -2639,8 +2626,7 @@ export var products_default = [
             黑月游乐城: 2212,
             淘金乐园: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "石英砂",
@@ -2671,8 +2657,7 @@ export var products_default = [
             黑月游乐城: 315,
             淘金乐园: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "金箔酒",
@@ -2703,8 +2688,7 @@ export var products_default = [
             黑月游乐城: 3569,
             岚心城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "刀具",
@@ -2735,8 +2719,7 @@ export var products_default = [
             黑月游乐城: 2866,
             岚心城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "折扇",
@@ -2767,8 +2750,7 @@ export var products_default = [
             黑月游乐城: 1488,
             岚心城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "画材",
@@ -2799,8 +2781,7 @@ export var products_default = [
             黑月游乐城: 788,
             岚心城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "荧光棒",
@@ -2831,8 +2812,7 @@ export var products_default = [
             黑月游乐城: 470,
             澄明数据中心: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "录像带",
@@ -2863,8 +2843,7 @@ export var products_default = [
             黑月游乐城: 543,
             澄明数据中心: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "录音带",
@@ -2895,8 +2874,7 @@ export var products_default = [
             黑月游乐城: 271,
             澄明数据中心: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "纳豆",
@@ -2927,8 +2905,7 @@ export var products_default = [
             黑月游乐城: 326,
             岚心城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "杯面",
@@ -2959,8 +2936,7 @@ export var products_default = [
             黑月游乐城: 85,
             岚心城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "阿妮塔小型桦树发电机",
@@ -2991,8 +2967,7 @@ export var products_default = [
             黑月游乐城: 8225,
             阿妮塔能源研究所: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "石墨烯电池",
@@ -3058,8 +3033,7 @@ export var products_default = [
             黑月游乐城: 2012,
             阿妮塔能源研究所: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "家用太阳能电池组",
@@ -3090,8 +3064,7 @@ export var products_default = [
             黑月游乐城: 1544,
             阿妮塔能源研究所: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "锂电池",
@@ -3122,8 +3095,7 @@ export var products_default = [
             黑月游乐城: 945,
             阿妮塔能源研究所: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "充电电池",
@@ -3154,8 +3126,7 @@ export var products_default = [
             黑月游乐城: 354,
             阿妮塔能源研究所: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "金箔",
@@ -3216,8 +3187,7 @@ export var products_default = [
             黑月游乐城: 816,
             澄明数据中心: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "游戏机",
@@ -3248,8 +3218,7 @@ export var products_default = [
             黑月游乐城: 3648,
             澄明数据中心: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "扬声器",
@@ -3280,8 +3249,7 @@ export var products_default = [
             黑月游乐城: 1085,
             澄明数据中心: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "火车玩具",
@@ -3312,8 +3280,7 @@ export var products_default = [
             黑月游乐城: 371,
             澄明数据中心: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "漆黑矿渣",
@@ -3344,8 +3311,7 @@ export var products_default = [
             黑月游乐城: 722,
             淘金乐园: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "图形加速卡",
@@ -3376,8 +3342,7 @@ export var products_default = [
             黑月游乐城: 3871,
             曼德矿场: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "随身听",
@@ -3408,8 +3373,7 @@ export var products_default = [
             黑月游乐城: 1825,
             岚心城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "银矿石",
@@ -3440,8 +3404,7 @@ export var products_default = [
             黑月游乐城: 2800,
             澄明数据中心: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "青金石",
@@ -3472,8 +3435,7 @@ export var products_default = [
             黑月游乐城: 2458,
             淘金乐园: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "精钢",
@@ -3538,8 +3500,7 @@ export var products_default = [
             黑月游乐城: 7945,
             阿妮塔战备工厂: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "防弹背心",
@@ -3607,8 +3568,7 @@ export var products_default = [
             黑月游乐城: 1915,
             铁盟哨站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "塑胶炸药",
@@ -3639,8 +3599,7 @@ export var products_default = [
             黑月游乐城: 951,
             铁盟哨站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "子弹",
@@ -3671,8 +3630,7 @@ export var products_default = [
             黑月游乐城: 758,
             铁盟哨站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "汽油",
@@ -3703,8 +3661,7 @@ export var products_default = [
             黑月游乐城: 638,
             铁盟哨站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "纯金线材",
@@ -3765,8 +3722,7 @@ export var products_default = [
             黑月游乐城: 4025,
             阿妮塔战备工厂: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "负片炮弹",
@@ -3797,8 +3753,7 @@ export var products_default = [
             黑月游乐城: 4767,
             阿妮塔战备工厂: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "碳纤维",
@@ -3829,8 +3784,7 @@ export var products_default = [
             黑月游乐城: 1653,
             阿妮塔战备工厂: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "抗污染防护服",
@@ -3897,8 +3851,7 @@ export var products_default = [
             黑月游乐城: 1208,
             阿妮塔战备工厂: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "高导磁硅钢片",
@@ -3929,8 +3882,7 @@ export var products_default = [
             黑月游乐城: 966,
             阿妮塔战备工厂: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "黄铜线圈",
@@ -3995,8 +3947,7 @@ export var products_default = [
             黑月游乐城: 729,
             阿妮塔发射中心: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "蜂窝防热烧蚀材料",
@@ -4027,8 +3978,7 @@ export var products_default = [
             黑月游乐城: 4639,
             阿妮塔发射中心: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "液氧甲烷燃料",
@@ -4059,8 +4009,7 @@ export var products_default = [
             黑月游乐城: 1043,
             阿妮塔发射中心: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "航天半导体",
@@ -4091,8 +4040,7 @@ export var products_default = [
             黑月游乐城: 9088,
             阿妮塔发射中心: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "无刷电机",
@@ -4123,8 +4071,7 @@ export var products_default = [
             黑月游乐城: 941,
             阿妮塔发射中心: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "太阳电池阵",
@@ -4155,8 +4102,7 @@ export var products_default = [
             黑月游乐城: 6402,
             阿妮塔发射中心: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "镍基高温合金",
@@ -4187,8 +4133,7 @@ export var products_default = [
             黑月游乐城: 1847,
             阿妮塔发射中心: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "钛合金",
@@ -4511,8 +4456,7 @@ export var products_default = [
             黑月游乐城: 1993,
             曼德矿场: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "高导热陶瓷",
@@ -4578,8 +4522,7 @@ export var products_default = [
             云岫桥基地: 551,
             黑月游乐城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "锦缎",
@@ -4641,8 +4584,7 @@ export var products_default = [
             黑月游乐城: 1118,
             荒原站: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "高级女装",
@@ -4926,8 +4868,7 @@ export var products_default = [
             黑月游乐城: 1088,
             云岫桥基地: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "蕾丝连衣裙",
@@ -5054,8 +4995,7 @@ export var products_default = [
             黑月游乐城: 897,
             云岫桥基地: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "尼龙",
@@ -5086,8 +5026,7 @@ export var products_default = [
             黑月游乐城: 709,
             云岫桥基地: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "绣线",
@@ -5118,8 +5057,7 @@ export var products_default = [
             黑月游乐城: 461,
             云岫桥基地: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "牛仔布",
@@ -5184,8 +5122,7 @@ export var products_default = [
             黑月游乐城: 416,
             云岫桥基地: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "涤纶",
@@ -5216,8 +5153,7 @@ export var products_default = [
             黑月游乐城: 237,
             云岫桥基地: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "鸭",
@@ -5250,8 +5186,7 @@ export var products_default = [
             云岫桥基地: null,
             栖羽站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "肥皂",
@@ -5282,8 +5217,7 @@ export var products_default = [
             黑月游乐城: 71,
             云岫桥基地: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "尼龙晴雨伞",
@@ -5411,6 +5345,33 @@ export var products_default = [
         }
     },
     {
+        name: "羊绒衫",
+        buyPrices: {},
+        buyLot: {},
+        sellPrices: {
+            七号自由港: 2687,
+            阿妮塔能源研究所: 2755,
+            澄明数据中心: 2619,
+            修格里城: 2482,
+            荒原站: 2414,
+            曼德矿场: 2482,
+            淘金乐园: 2550,
+            贡露城: 2687,
+            海角城: 2892,
+            岚心城: 2619,
+            铁盟哨站: 2482,
+            阿妮塔发射中心: 2823,
+            阿妮塔战备工厂: 2619,
+            云岫桥基地: 2345,
+            汇流塔: 2960,
+            远星大桥: 2755,
+            栖羽站: 2550,
+            塔图站: 2755,
+            黑月游乐城: 2687
+        },
+        type: "Craft"
+    },
+    {
         name: "芳纶纤维",
         buyPrices: {
             汇流塔: 1201
@@ -5439,8 +5400,7 @@ export var products_default = [
             黑月游乐城: 1657,
             汇流塔: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "山羊",
@@ -5471,8 +5431,7 @@ export var products_default = [
             黑月游乐城: 624,
             汇流塔: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "羊绒",
@@ -5597,6 +5556,33 @@ export var products_default = [
             西服面料: 0.1875,
             缝纫工具包: 0.1875
         }
+    },
+    {
+        name: "雪纺",
+        buyPrices: {},
+        buyLot: {},
+        sellPrices: {
+            七号自由港: 1153,
+            阿妮塔能源研究所: 1198,
+            澄明数据中心: 1135,
+            修格里城: 1045,
+            荒原站: 973,
+            曼德矿场: 1018,
+            淘金乐园: 1063,
+            贡露城: 1180,
+            海角城: 1315,
+            岚心城: 1135,
+            铁盟哨站: 1018,
+            阿妮塔发射中心: 1243,
+            阿妮塔战备工厂: 1108,
+            云岫桥基地: 928,
+            汇流塔: 1333,
+            远星大桥: 1198,
+            栖羽站: 1090,
+            塔图站: 1225,
+            黑月游乐城: 1180
+        },
+        type: "Craft"
     },
     {
         name: "天鹅绒椅披",
@@ -5755,6 +5741,33 @@ export var products_default = [
         craft: {
             鸭: 0.15
         }
+    },
+    {
+        name: "蚕丝",
+        buyPrices: {},
+        buyLot: {},
+        sellPrices: {
+            七号自由港: 2020,
+            阿妮塔能源研究所: 2097,
+            澄明数据中心: 1990,
+            修格里城: 1834,
+            荒原站: 1709,
+            曼德矿场: 1787,
+            淘金乐园: 1864,
+            贡露城: 2067,
+            海角城: 2300,
+            岚心城: 1990,
+            铁盟哨站: 1787,
+            阿妮塔发射中心: 2175,
+            阿妮塔战备工厂: 1942,
+            云岫桥基地: 1632,
+            汇流塔: 2330,
+            远星大桥: 2097,
+            栖羽站: 1912,
+            塔图站: 2145,
+            黑月游乐城: 2020
+        },
+        type: "Craft"
     },
     {
         name: "金丝",
@@ -6083,8 +6096,34 @@ export var products_default = [
             黑月游乐城: 2074,
             汇流塔: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
+    },
+    {
+        name: "太空棉",
+        buyPrices: {},
+        buyLot: {},
+        sellPrices: {
+            七号自由港: 2520,
+            阿妮塔发射中心: 2250,
+            阿妮塔能源研究所: 2453,
+            阿妮塔战备工厂: 2520,
+            澄明数据中心: 2588,
+            贡露城: 2588,
+            海角城: 2520,
+            荒原站: 2723,
+            汇流塔: 2588,
+            远星大桥: 2520,
+            岚心城: 3060,
+            曼德矿场: 2723,
+            淘金乐园: 2790,
+            铁盟哨站: 2655,
+            修格里城: 2588,
+            云岫桥基地: 2790,
+            栖羽站: 2993,
+            塔图站: 2925,
+            黑月游乐城: 2723
+        },
+        type: "Craft"
     },
     {
         name: "岚心锦",
@@ -6217,8 +6256,7 @@ export var products_default = [
             黑月游乐城: 522,
             远星大桥: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "扇贝",
@@ -6249,8 +6287,7 @@ export var products_default = [
             黑月游乐城: 291,
             远星大桥: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "鱼肝油",
@@ -6281,8 +6318,7 @@ export var products_default = [
             黑月游乐城: 3859,
             汇流塔: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "黑毛牛排",
@@ -6313,8 +6349,7 @@ export var products_default = [
             黑月游乐城: 5099,
             岚心城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "学会纪念品",
@@ -6345,8 +6380,7 @@ export var products_default = [
             黑月游乐城: 2820,
             汇流塔: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "香薰蜡烛",
@@ -6377,8 +6411,7 @@ export var products_default = [
             黑月游乐城: 1218,
             汇流塔: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "水银",
@@ -6409,8 +6442,7 @@ export var products_default = [
             黑月游乐城: 1263,
             汇流塔: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "马鲛鱼",
@@ -6441,8 +6473,7 @@ export var products_default = [
             黑月游乐城: 412,
             汇流塔: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "贻贝",
@@ -6473,8 +6504,7 @@ export var products_default = [
             黑月游乐城: 200,
             汇流塔: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "阿妮塔连体衣",
@@ -6572,8 +6602,7 @@ export var products_default = [
             黑月游乐城: 2030,
             远星大桥: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "玄武岩纤维",
@@ -6638,8 +6667,7 @@ export var products_default = [
             黑月游乐城: 1577,
             远星大桥: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "索具",
@@ -6670,8 +6698,7 @@ export var products_default = [
             黑月游乐城: 1086,
             远星大桥: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "陨铁矿",
@@ -6702,8 +6729,7 @@ export var products_default = [
             黑月游乐城: 969,
             远星大桥: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "玄武岩",
@@ -6734,8 +6760,7 @@ export var products_default = [
             黑月游乐城: 495,
             远星大桥: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "水泥",
@@ -6766,8 +6791,33 @@ export var products_default = [
             黑月游乐城: 76,
             远星大桥: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
+    },
+    {
+        name: "飞弹",
+        buyPrices: {},
+        buyLot: {},
+        sellPrices: {
+            七号自由港: 10056,
+            阿妮塔发射中心: 10602,
+            阿妮塔能源研究所: 10192,
+            阿妮塔战备工厂: 10192,
+            澄明数据中心: 9919,
+            贡露城: 10056,
+            海角城: 10738,
+            荒原站: 9510,
+            汇流塔: 10875,
+            远星大桥: 10465,
+            岚心城: 10192,
+            曼德矿场: 9646,
+            淘金乐园: 9783,
+            铁盟哨站: 9919,
+            修格里城: 9919,
+            栖羽站: 10056,
+            塔图站: 10465,
+            黑月游乐城: 10056
+        },
+        type: "Craft"
     },
     {
         name: "碳钢匕首",
@@ -6798,8 +6848,7 @@ export var products_default = [
             黑月游乐城: 2249,
             栖羽站: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "鹅绒被",
@@ -6936,8 +6985,7 @@ export var products_default = [
             黑月游乐城: 841,
             栖羽站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "鹅",
@@ -6968,8 +7016,7 @@ export var products_default = [
             黑月游乐城: 356,
             栖羽站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "树脂",
@@ -7000,8 +7047,7 @@ export var products_default = [
             黑月游乐城: 892,
             栖羽站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "石蜡",
@@ -7032,8 +7078,7 @@ export var products_default = [
             黑月游乐城: 764,
             塔图站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "石油",
@@ -7064,8 +7109,7 @@ export var products_default = [
             黑月游乐城: 756,
             塔图站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "硅矿石",
@@ -7096,8 +7140,7 @@ export var products_default = [
             黑月游乐城: 521,
             塔图站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "黄铁矿",
@@ -7128,8 +7171,7 @@ export var products_default = [
             黑月游乐城: 391,
             塔图站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "石灰岩",
@@ -7160,8 +7202,7 @@ export var products_default = [
             黑月游乐城: 174,
             塔图站: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "游乐城主题配饰",
@@ -7192,8 +7233,7 @@ export var products_default = [
             云岫桥基地: 1810,
             黑月游乐城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "纪念卫衣",
@@ -7224,8 +7264,7 @@ export var products_default = [
             云岫桥基地: 806,
             黑月游乐城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "限定公仔",
@@ -7256,8 +7295,7 @@ export var products_default = [
             云岫桥基地: 2927,
             黑月游乐城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "限定典藏游戏卡带",
@@ -7288,8 +7326,7 @@ export var products_default = [
             云岫桥基地: 1800,
             黑月游乐城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "游乐城纪念唱片",
@@ -7320,8 +7357,7 @@ export var products_default = [
             云岫桥基地: 1169,
             黑月游乐城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "城堡摆件",
@@ -7352,8 +7388,7 @@ export var products_default = [
             云岫桥基地: 718,
             黑月游乐城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "游乐城纪念徽章",
@@ -7384,8 +7419,7 @@ export var products_default = [
             云岫桥基地: 469,
             黑月游乐城: null
         },
-        type: "Special",
-        craft: {}
+        type: "Special"
     },
     {
         name: "游乐城纪念文具",
@@ -7416,8 +7450,7 @@ export var products_default = [
             云岫桥基地: 201,
             黑月游乐城: null
         },
-        type: "Normal",
-        craft: {}
+        type: "Normal"
     },
     {
         name: "钛钢轨条",
@@ -7451,3 +7484,4 @@ export var products_default = [
         }
     }
 ]
+

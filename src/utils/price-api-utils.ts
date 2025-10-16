@@ -60,7 +60,7 @@ export const convertFirebaseDataToGetPricesData = (data: LbGetPricesProducts): G
   return responseData;
 };
 
-export const convertFirebaseDataToGetPricesDataNew = (data: NewGetPricesProducts): GetPricesProducts => {
+export const convertFirebaseDataToGetPricesDataNew = (data: NewGetPricesProducts,cityList): GetPricesProducts => {
   const responseData2: GetPricesProducts = {};
   for (const pdtName in data) {
     const pdt = data[pdtName];

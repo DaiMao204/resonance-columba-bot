@@ -380,7 +380,8 @@ export const calculateOneGraphBuyCombinations = (
   prestige: PlayerConfigPrestige,
   roles: PlayerConfigRoles,
   productUnlockStatus: PlayerConfigProductUnlockStatus,
-  playerConfigEvents :PlayerConfigEvents
+  playerConfigEvents :PlayerConfigEvents,
+  citys:CityName[]
 ): OnegraphBuyCombinations => {
   // skip if Server side rendering
   /*if (typeof window === "undefined") {
@@ -399,7 +400,7 @@ export const calculateOneGraphBuyCombinations = (
   const { bargainPercent, raisePercent, bargainFatigue, raiseFatigue, disabled: barginDisabled } = bargain;
 
   const pricesData: OnegraphPriceData = {};
-  for (const fromCity of CITIES) {
+  for (const fromCity of citys) {
     const fromCityMaster = CITY_BELONGS_TO[fromCity] ?? fromCity;
     const buyPrestige = PRESTIGES.find((p) => p.level === prestige[fromCityMaster]);
     if (!buyPrestige) {
@@ -412,7 +413,7 @@ export const calculateOneGraphBuyCombinations = (
       // by default all products are unlocked, in productUnlockStatus the product should be set to false if the product is not unlocked
       .filter((product) => productUnlockStatus?.[product.name] ?? true);
 
-    for (const toCity of CITIES) {
+    for (const toCity of citys) {
       if (fromCity === toCity) {
         continue;
       }

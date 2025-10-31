@@ -1,6 +1,7 @@
 export var cityattachlist_default_steam = {
     荒原站: "修格里城",
     淘金乐园: "曼德矿场",
+    维蒂林场: "贡露城",
     黑月游乐城: "雪金城",
     阿妮塔战备工厂: "澄明数据中心",
     阿妮塔能源研究所: "七号自由港",
@@ -119,6 +120,22 @@ export var resonanceskills_default_steam = {
             buyMore: {
                 city: {
                     海角城: 20
+                }
+            }
+        }
+    },
+    多萝西: {
+        "4": {
+            buyMore: {
+                product: {
+                    弹丸加速装置: 20
+                }
+            }
+        },
+        "5": {
+            buyMore: {
+                product: {
+                    弹丸加速装置: 30
                 }
             }
         }
@@ -346,6 +363,31 @@ export var resonanceskills_default_steam = {
             }
         }
     },
+    安菲娅: {
+        "1": {
+            buyMore: {
+                city: {
+                    荒原站: 20
+                }
+            }
+        },
+        "5": {
+            buyMore: {
+                city: {
+                    荒原站: 30
+                }
+            }
+        }
+    },
+    帕拉笛: {
+        "4": {
+            buyMore: {
+                city: {
+                    云岫桥基地: 20
+                }
+            }
+        }
+    },
     金子小姐: {
         "4": {
             buyMore: {
@@ -380,6 +422,9 @@ export var role_resonanceskills_steam = {
     },
     静流: {
         resonance: 4
+    },
+    多萝西: {
+        resonance: 5
     },
     卡莲: {
         resonance: 4
@@ -426,6 +471,12 @@ export var role_resonanceskills_steam = {
     苔妮: {
         resonance: 5
     },
+    安菲娅: {
+        resonance: 5
+    },
+    帕拉笛: {
+        resonance: 4
+    },
     金子小姐: {
         resonance: 4
     }
@@ -458,6 +509,7 @@ export var products_default_steam = [
             栖羽站: 165,
             塔图站: 159,
             黑月游乐城: 145,
+            维蒂林场: 155,
             七号自由港: null
         },
         type: "Normal"
@@ -489,6 +541,7 @@ export var products_default_steam = [
             栖羽站: 307,
             塔图站: 290,
             黑月游乐城: 258,
+            维蒂林场: 263,
             七号自由港: null
         },
         type: "Normal"
@@ -520,6 +573,7 @@ export var products_default_steam = [
             栖羽站: 130,
             塔图站: 125,
             黑月游乐城: 109,
+            维蒂林场: 114,
             七号自由港: null
         },
         type: "Normal"
@@ -551,6 +605,7 @@ export var products_default_steam = [
             栖羽站: 1329,
             塔图站: 1258,
             黑月游乐城: 976,
+            维蒂林场: 1064,
             七号自由港: null
         },
         type: "Special"
@@ -582,6 +637,7 @@ export var products_default_steam = [
             栖羽站: 1026,
             塔图站: 995,
             黑月游乐城: 925,
+            维蒂林场: 932,
             七号自由港: null
         },
         type: "Normal"
@@ -613,6 +669,7 @@ export var products_default_steam = [
             栖羽站: 1382,
             塔图站: 1341,
             黑月游乐城: 1219,
+            维蒂林场: 1260,
             七号自由港: null
         },
         type: "Normal"
@@ -644,6 +701,7 @@ export var products_default_steam = [
             栖羽站: 1382,
             塔图站: 1274,
             黑月游乐城: 1328,
+            维蒂林场: 1166,
             曼德矿场: null
         },
         type: "Normal",
@@ -678,6 +736,7 @@ export var products_default_steam = [
             栖羽站: 38,
             塔图站: 35,
             黑月游乐城: 36,
+            维蒂林场: 32,
             曼德矿场: null
         },
         type: "Normal"
@@ -709,6 +768,7 @@ export var products_default_steam = [
             栖羽站: 713,
             塔图站: 676,
             黑月游乐城: 694,
+            维蒂林场: 639,
             曼德矿场: null
         },
         type: "Normal"
@@ -740,6 +800,7 @@ export var products_default_steam = [
             栖羽站: 540,
             塔图站: 504,
             黑月游乐城: 522,
+            维蒂林场: 482,
             曼德矿场: null
         },
         type: "Normal"
@@ -772,6 +833,7 @@ export var products_default_steam = [
             栖羽站: 403,
             塔图站: 382,
             黑月游乐城: 392,
+            维蒂林场: 361,
             曼德矿场: null,
             淘金乐园: null
         },
@@ -804,6 +866,7 @@ export var products_default_steam = [
             栖羽站: 225,
             塔图站: 207,
             黑月游乐城: 216,
+            维蒂林场: 189,
             曼德矿场: null
         },
         type: "Normal"
@@ -835,6 +898,7 @@ export var products_default_steam = [
             栖羽站: 1373,
             塔图站: 1197,
             黑月游乐城: 1285,
+            维蒂林场: 1021,
             曼德矿场: null
         },
         type: "Special"
@@ -866,6 +930,7 @@ export var products_default_steam = [
             栖羽站: 1016,
             塔图站: 968,
             黑月游乐城: 992,
+            维蒂林场: 848,
             贡露城: null
         },
         type: "Normal"
@@ -897,6 +962,7 @@ export var products_default_steam = [
             栖羽站: 923,
             塔图站: 838,
             黑月游乐城: 880,
+            维蒂林场: 731,
             贡露城: null
         },
         type: "Normal"
@@ -928,6 +994,7 @@ export var products_default_steam = [
             栖羽站: 1971,
             塔图站: 1688,
             黑月游乐城: 1863,
+            维蒂林场: 1458,
             贡露城: null
         },
         type: "Normal",
@@ -964,6 +1031,7 @@ export var products_default_steam = [
             栖羽站: 211,
             塔图站: 201,
             黑月游乐城: 206,
+            维蒂林场: 180,
             贡露城: null
         },
         type: "Normal"
@@ -995,6 +1063,7 @@ export var products_default_steam = [
             栖羽站: 2856,
             塔图站: 2352,
             黑月游乐城: 2722,
+            维蒂林场: 1915,
             贡露城: null
         },
         type: "Special"
@@ -1026,6 +1095,7 @@ export var products_default_steam = [
             栖羽站: 1817,
             塔图站: 1605,
             黑月游乐城: 1711,
+            维蒂林场: 1286,
             贡露城: null
         },
         type: "Special"
@@ -1057,6 +1127,7 @@ export var products_default_steam = [
             栖羽站: 5481,
             塔图站: 4971,
             黑月游乐城: 5198,
+            维蒂林场: 4064,
             贡露城: null
         },
         type: "Special"
@@ -1088,6 +1159,7 @@ export var products_default_steam = [
             栖羽站: 4112,
             塔图站: 3665,
             黑月游乐城: 3904,
+            维蒂林场: 3189,
             贡露城: null
         },
         type: "Special"
@@ -1119,6 +1191,7 @@ export var products_default_steam = [
             栖羽站: 6000,
             塔图站: 5480,
             黑月游乐城: 5360,
+            维蒂林场: 4760,
             海角城: null
         },
         type: "Special"
@@ -1150,6 +1223,7 @@ export var products_default_steam = [
             栖羽站: 1940,
             塔图站: 1650,
             黑月游乐城: 1620,
+            维蒂林场: 1350,
             海角城: null
         },
         type: "Special"
@@ -1181,6 +1255,7 @@ export var products_default_steam = [
             栖羽站: 155,
             塔图站: 130,
             黑月游乐城: 127,
+            维蒂林场: 106,
             海角城: null
         },
         type: "Normal"
@@ -1212,6 +1287,7 @@ export var products_default_steam = [
             栖羽站: 388,
             塔图站: 324,
             黑月游乐城: 318,
+            维蒂林场: 264,
             海角城: null
         },
         type: "Normal"
@@ -1243,6 +1319,7 @@ export var products_default_steam = [
             栖羽站: 518,
             塔图站: 422,
             黑月游乐城: 415,
+            维蒂林场: 336,
             海角城: null
         },
         type: "Normal"
@@ -1274,6 +1351,7 @@ export var products_default_steam = [
             栖羽站: 706,
             塔图站: 629,
             黑月游乐城: 629,
+            维蒂林场: 571,
             海角城: null
         },
         type: "Normal"
@@ -1305,6 +1383,7 @@ export var products_default_steam = [
             栖羽站: 6159,
             塔图站: 6183,
             黑月游乐城: 5670,
+            维蒂林场: 5646,
             七号自由港: null
         },
         type: "Special"
@@ -1336,6 +1415,7 @@ export var products_default_steam = [
             栖羽站: 3180,
             塔图站: 3087,
             黑月游乐城: 2811,
+            维蒂林场: 2834,
             七号自由港: null
         },
         type: "Special",
@@ -1370,6 +1450,7 @@ export var products_default_steam = [
             栖羽站: 2552,
             塔图站: 2522,
             黑月游乐城: 2218,
+            维蒂林场: 2248,
             七号自由港: null
         },
         type: "Special"
@@ -1401,6 +1482,7 @@ export var products_default_steam = [
             栖羽站: 4170,
             塔图站: 4069,
             黑月游乐城: 3666,
+            维蒂林场: 3867,
             修格里城: null
         },
         type: "Special"
@@ -1433,6 +1515,7 @@ export var products_default_steam = [
             栖羽站: 2791,
             塔图站: 2705,
             黑月游乐城: 2383,
+            维蒂林场: 2533,
             修格里城: null,
             铁盟哨站: null
         },
@@ -1465,6 +1548,7 @@ export var products_default_steam = [
             栖羽站: 1316,
             塔图站: 1316,
             黑月游乐城: 1186,
+            维蒂林场: 1186,
             修格里城: null
         },
         type: "Normal"
@@ -1496,6 +1580,7 @@ export var products_default_steam = [
             栖羽站: 936,
             塔图站: 922,
             黑月游乐城: 792,
+            维蒂林场: 828,
             修格里城: null
         },
         type: "Normal"
@@ -1527,6 +1612,7 @@ export var products_default_steam = [
             栖羽站: 1225,
             塔图站: 1163,
             黑月游乐城: 894,
+            维蒂林场: 977,
             修格里城: null
         },
         type: "Special"
@@ -1558,6 +1644,7 @@ export var products_default_steam = [
             栖羽站: 467,
             塔图站: 453,
             黑月游乐城: 408,
+            维蒂林场: 412,
             修格里城: null
         },
         type: "Normal"
@@ -1589,6 +1676,7 @@ export var products_default_steam = [
             栖羽站: 763,
             塔图站: 697,
             黑月游乐城: 474,
+            维蒂林场: 548,
             修格里城: null
         },
         type: "Special"
@@ -1620,6 +1708,7 @@ export var products_default_steam = [
             栖羽站: 140,
             塔图站: 131,
             黑月游乐城: 119,
+            维蒂林场: 124,
             修格里城: null
         },
         type: "Normal"
@@ -1651,6 +1740,7 @@ export var products_default_steam = [
             栖羽站: 113,
             塔图站: 105,
             黑月游乐城: 73,
+            维蒂林场: 82,
             修格里城: null
         },
         type: "Normal"
@@ -1682,6 +1772,7 @@ export var products_default_steam = [
             栖羽站: 691,
             塔图站: 637,
             黑月游乐城: 664,
+            维蒂林场: 583,
             曼德矿场: null
         },
         type: "Normal"
@@ -1713,6 +1804,7 @@ export var products_default_steam = [
             栖羽站: 400,
             塔图站: 350,
             黑月游乐城: 386,
+            维蒂林场: 302,
             贡露城: null
         },
         type: "Normal"
@@ -1744,6 +1836,7 @@ export var products_default_steam = [
             栖羽站: 2800,
             塔图站: 2368,
             黑月游乐城: 2368,
+            维蒂林场: 2032,
             海角城: null
         },
         type: "Special"
@@ -1775,6 +1868,7 @@ export var products_default_steam = [
             栖羽站: 1428,
             塔图站: 1158,
             黑月游乐城: 1140,
+            维蒂林场: 906,
             海角城: null
         },
         type: "Special"
@@ -1806,6 +1900,7 @@ export var products_default_steam = [
             栖羽站: 529,
             塔图站: 472,
             黑月游乐城: 472,
+            维蒂林场: 428,
             海角城: null
         },
         type: "Normal"
@@ -1837,6 +1932,7 @@ export var products_default_steam = [
             栖羽站: 1139,
             塔图站: 975,
             黑月游乐城: 1076,
+            维蒂林场: 842,
             贡露城: null
         },
         type: "Normal"
@@ -1868,6 +1964,7 @@ export var products_default_steam = [
             栖羽站: 2822,
             塔图站: 2890,
             黑月游乐城: 2822,
+            维蒂林场: 2531,
             荒原站: null
         },
         type: "Special"
@@ -1899,6 +1996,7 @@ export var products_default_steam = [
             栖羽站: 2079,
             塔图站: 2079,
             黑月游乐城: 2079,
+            维蒂林场: 1865,
             荒原站: null
         },
         type: "Special"
@@ -1930,6 +2028,7 @@ export var products_default_steam = [
             栖羽站: 1487,
             塔图站: 1487,
             黑月游乐城: 1487,
+            维蒂林场: 1316,
             荒原站: null
         },
         type: "Special"
@@ -1961,6 +2060,7 @@ export var products_default_steam = [
             栖羽站: 759,
             塔图站: 759,
             黑月游乐城: 759,
+            维蒂林场: 739,
             荒原站: null
         },
         type: "Normal"
@@ -1992,6 +2092,7 @@ export var products_default_steam = [
             栖羽站: 453,
             塔图站: 430,
             黑月游乐城: 430,
+            维蒂林场: 419,
             荒原站: null
         },
         type: "Normal"
@@ -2023,6 +2124,7 @@ export var products_default_steam = [
             栖羽站: 221,
             塔图站: 212,
             黑月游乐城: 204,
+            维蒂林场: 200,
             铁盟哨站: null
         },
         type: "Normal"
@@ -2054,6 +2156,7 @@ export var products_default_steam = [
             栖羽站: 81,
             塔图站: 82,
             黑月游乐城: 81,
+            维蒂林场: 73,
             荒原站: null
         },
         type: "Normal"
@@ -2085,6 +2188,7 @@ export var products_default_steam = [
             栖羽站: 3348,
             塔图站: 2943,
             黑月游乐城: 3186,
+            维蒂林场: 2862,
             淘金乐园: null
         },
         type: "Special"
@@ -2116,6 +2220,7 @@ export var products_default_steam = [
             栖羽站: 2350,
             塔图站: 1953,
             黑月游乐城: 2212,
+            维蒂林场: 1866,
             淘金乐园: null
         },
         type: "Special"
@@ -2147,6 +2252,7 @@ export var products_default_steam = [
             栖羽站: 331,
             塔图站: 266,
             黑月游乐城: 315,
+            维蒂林场: 249,
             淘金乐园: null
         },
         type: "Normal"
@@ -2178,6 +2284,7 @@ export var products_default_steam = [
             栖羽站: 2520,
             塔图站: 3500,
             黑月游乐城: 3569,
+            维蒂林场: 3336,
             岚心城: null
         },
         type: "Special"
@@ -2209,6 +2316,7 @@ export var products_default_steam = [
             栖羽站: 2023,
             塔图站: 2922,
             黑月游乐城: 2866,
+            维蒂林场: 2735,
             岚心城: null
         },
         type: "Special"
@@ -2240,6 +2348,7 @@ export var products_default_steam = [
             栖羽站: 828,
             塔图站: 1532,
             黑月游乐城: 1488,
+            维蒂林场: 1341,
             岚心城: null
         },
         type: "Special"
@@ -2271,6 +2380,7 @@ export var products_default_steam = [
             栖羽站: 586,
             塔图站: 788,
             黑月游乐城: 788,
+            维蒂林场: 743,
             岚心城: null
         },
         type: "Normal"
@@ -2302,6 +2412,7 @@ export var products_default_steam = [
             栖羽站: 574,
             塔图站: 541,
             黑月游乐城: 470,
+            维蒂林场: 499,
             澄明数据中心: null
         },
         type: "Normal"
@@ -2333,6 +2444,7 @@ export var products_default_steam = [
             栖羽站: 650,
             塔图站: 635,
             黑月游乐城: 543,
+            维蒂林场: 573,
             澄明数据中心: null
         },
         type: "Normal"
@@ -2364,6 +2476,7 @@ export var products_default_steam = [
             栖羽站: 325,
             塔图站: 317,
             黑月游乐城: 271,
+            维蒂林场: 287,
             澄明数据中心: null
         },
         type: "Normal"
@@ -2395,6 +2508,7 @@ export var products_default_steam = [
             栖羽站: 184,
             塔图站: 326,
             黑月游乐城: 326,
+            维蒂林场: 293,
             岚心城: null
         },
         type: "Normal"
@@ -2426,6 +2540,7 @@ export var products_default_steam = [
             栖羽站: 56,
             塔图站: 88,
             黑月游乐城: 85,
+            维蒂林场: 80,
             岚心城: null
         },
         type: "Normal"
@@ -2457,6 +2572,7 @@ export var products_default_steam = [
             栖羽站: 8778,
             塔图站: 8502,
             黑月游乐城: 8225,
+            维蒂林场: 7880,
             阿妮塔能源研究所: null
         },
         type: "Special"
@@ -2488,6 +2604,7 @@ export var products_default_steam = [
             栖羽站: 5222,
             塔图站: 4877,
             黑月游乐城: 4646,
+            维蒂林场: 4531,
             阿妮塔能源研究所: null
         },
         type: "Special",
@@ -2523,6 +2640,7 @@ export var products_default_steam = [
             栖羽站: 2319,
             塔图站: 2166,
             黑月游乐城: 2012,
+            维蒂林场: 1935,
             阿妮塔能源研究所: null
         },
         type: "Special"
@@ -2554,6 +2672,7 @@ export var products_default_steam = [
             栖羽站: 1740,
             塔图站: 1659,
             黑月游乐城: 1544,
+            维蒂林场: 1452,
             阿妮塔能源研究所: null
         },
         type: "Special"
@@ -2585,6 +2704,7 @@ export var products_default_steam = [
             栖羽站: 1091,
             塔图站: 1006,
             黑月游乐城: 945,
+            维蒂林场: 914,
             阿妮塔能源研究所: null
         },
         type: "Normal"
@@ -2616,6 +2736,7 @@ export var products_default_steam = [
             栖羽站: 409,
             塔图站: 377,
             黑月游乐城: 354,
+            维蒂林场: 334,
             阿妮塔能源研究所: null
         },
         type: "Normal"
@@ -2643,7 +2764,8 @@ export var products_default_steam = [
             远星大桥: 3978,
             栖羽站: 4356,
             塔图站: 3888,
-            黑月游乐城: 4158
+            黑月游乐城: 4158,
+            维蒂林场: 3798
         },
         type: "Craft",
         craft: {
@@ -2677,6 +2799,7 @@ export var products_default_steam = [
             栖羽站: 1140,
             塔图站: 1095,
             黑月游乐城: 816,
+            维蒂林场: 927,
             澄明数据中心: null
         },
         type: "Special"
@@ -2708,6 +2831,7 @@ export var products_default_steam = [
             栖羽站: 4288,
             塔图站: 4256,
             黑月游乐城: 3648,
+            维蒂林场: 3808,
             澄明数据中心: null
         },
         type: "Special"
@@ -2739,6 +2863,7 @@ export var products_default_steam = [
             栖羽站: 1354,
             塔图站: 1306,
             黑月游乐城: 1085,
+            维蒂林场: 1181,
             澄明数据中心: null
         },
         type: "Special"
@@ -2770,6 +2895,7 @@ export var products_default_steam = [
             栖羽站: 442,
             塔图站: 416,
             黑月游乐城: 371,
+            维蒂林场: 384,
             澄明数据中心: null
         },
         type: "Normal"
@@ -2801,6 +2927,7 @@ export var products_default_steam = [
             栖羽站: 755,
             塔图站: 622,
             黑月游乐城: 722,
+            维蒂林场: 588,
             淘金乐园: null
         },
         type: "Normal"
@@ -2832,6 +2959,7 @@ export var products_default_steam = [
             栖羽站: 4116,
             塔图站: 3717,
             黑月游乐城: 3871,
+            维蒂林场: 3318,
             曼德矿场: null
         },
         type: "Special"
@@ -2863,6 +2991,7 @@ export var products_default_steam = [
             栖羽站: 1288,
             塔图站: 1861,
             黑月游乐城: 1825,
+            维蒂林场: 1742,
             岚心城: null
         },
         type: "Special"
@@ -2894,6 +3023,7 @@ export var products_default_steam = [
             栖羽站: 3175,
             塔图站: 3100,
             黑月游乐城: 2800,
+            维蒂林场: 2875,
             澄明数据中心: null
         },
         type: "Special"
@@ -2925,6 +3055,7 @@ export var products_default_steam = [
             栖羽站: 2611,
             塔图站: 2170,
             黑月游乐城: 2458,
+            维蒂林场: 2074,
             淘金乐园: null
         },
         type: "Special"
@@ -2956,6 +3087,7 @@ export var products_default_steam = [
             栖羽站: 1795,
             塔图站: 1726,
             黑月游乐城: 1617,
+            维蒂林场: 1548,
             铁盟哨站: null
         },
         type: "Special",
@@ -2990,6 +3122,7 @@ export var products_default_steam = [
             栖羽站: 8820,
             塔图站: 8855,
             黑月游乐城: 7945,
+            维蒂林场: 8085,
             阿妮塔战备工厂: null
         },
         type: "Special"
@@ -3021,6 +3154,7 @@ export var products_default_steam = [
             栖羽站: 3587,
             塔图站: 3473,
             黑月游乐城: 3359,
+            维蒂林场: 3246,
             铁盟哨站: null
         },
         type: "Special",
@@ -3058,6 +3192,7 @@ export var products_default_steam = [
             栖羽站: 2069,
             塔图站: 2018,
             黑月游乐城: 1915,
+            维蒂林场: 1915,
             铁盟哨站: null
         },
         type: "Normal"
@@ -3089,6 +3224,7 @@ export var products_default_steam = [
             栖羽站: 1017,
             塔图站: 1009,
             黑月游乐城: 951,
+            维蒂林场: 943,
             铁盟哨站: null
         },
         type: "Normal"
@@ -3120,6 +3256,7 @@ export var products_default_steam = [
             栖羽站: 819,
             塔图站: 799,
             黑月游乐城: 758,
+            维蒂林场: 758,
             铁盟哨站: null
         },
         type: "Normal"
@@ -3151,6 +3288,7 @@ export var products_default_steam = [
             栖羽站: 690,
             塔图站: 638,
             黑月游乐城: 638,
+            维蒂林场: 638,
             铁盟哨站: null
         },
         type: "Normal"
@@ -3178,7 +3316,8 @@ export var products_default_steam = [
             远星大桥: 7891,
             栖羽站: 8366,
             塔图站: 7733,
-            黑月游乐城: 8208
+            黑月游乐城: 8208,
+            维蒂林场: 7574
         },
         type: "Craft",
         craft: {
@@ -3212,6 +3351,7 @@ export var products_default_steam = [
             栖羽站: 4550,
             塔图站: 4550,
             黑月游乐城: 4025,
+            维蒂林场: 4130,
             阿妮塔战备工厂: null
         },
         type: "Special"
@@ -3243,6 +3383,7 @@ export var products_default_steam = [
             栖羽站: 5292,
             塔图站: 5313,
             黑月游乐城: 4767,
+            维蒂林场: 4851,
             阿妮塔战备工厂: null
         },
         type: "Special"
@@ -3274,6 +3415,7 @@ export var products_default_steam = [
             栖羽站: 1933,
             塔图站: 1919,
             黑月游乐城: 1653,
+            维蒂林场: 1723,
             阿妮塔战备工厂: null
         },
         type: "Special"
@@ -3305,6 +3447,7 @@ export var products_default_steam = [
             栖羽站: 3864,
             塔图站: 3836,
             黑月游乐城: 3304,
+            维蒂林场: 3444,
             阿妮塔战备工厂: null
         },
         type: "Special",
@@ -3341,6 +3484,7 @@ export var products_default_steam = [
             栖羽站: 1470,
             塔图站: 1449,
             黑月游乐城: 1208,
+            维蒂林场: 1313,
             阿妮塔战备工厂: null
         },
         type: "Normal"
@@ -3372,6 +3516,7 @@ export var products_default_steam = [
             栖羽站: 1226,
             塔图站: 1134,
             黑月游乐城: 966,
+            维蒂林场: 1050,
             阿妮塔战备工厂: null
         },
         type: "Normal"
@@ -3403,6 +3548,7 @@ export var products_default_steam = [
             栖羽站: 1001,
             塔图站: 945,
             黑月游乐城: 805,
+            维蒂林场: 875,
             阿妮塔战备工厂: null
         },
         type: "Normal",
@@ -3437,6 +3583,7 @@ export var products_default_steam = [
             栖羽站: 819,
             塔图站: 780,
             黑月游乐城: 729,
+            维蒂林场: 673,
             阿妮塔发射中心: null
         },
         type: "Normal"
@@ -3468,6 +3615,7 @@ export var products_default_steam = [
             栖羽站: 5088,
             塔图站: 4976,
             黑月游乐城: 4639,
+            维蒂林场: 4414,
             阿妮塔发射中心: null
         },
         type: "Special"
@@ -3499,6 +3647,7 @@ export var products_default_steam = [
             栖羽站: 1177,
             塔图站: 1169,
             黑月游乐城: 1043,
+            维蒂林场: 1009,
             阿妮塔发射中心: null
         },
         type: "Normal"
@@ -3530,6 +3679,7 @@ export var products_default_steam = [
             栖羽站: 9831,
             塔图站: 9645,
             黑月游乐城: 9088,
+            维蒂林场: 8902,
             阿妮塔发射中心: null
         },
         type: "Special"
@@ -3561,6 +3711,7 @@ export var products_default_steam = [
             栖羽站: 1060,
             塔图站: 1030,
             黑月游乐城: 941,
+            维蒂林场: 911,
             阿妮塔发射中心: null
         },
         type: "Normal"
@@ -3592,6 +3743,7 @@ export var products_default_steam = [
             栖羽站: 6931,
             塔图站: 6958,
             黑月游乐城: 6402,
+            维蒂林场: 6111,
             阿妮塔发射中心: null
         },
         type: "Special"
@@ -3623,6 +3775,7 @@ export var products_default_steam = [
             栖羽站: 2075,
             塔图站: 1975,
             黑月游乐城: 1847,
+            维蒂林场: 1748,
             阿妮塔发射中心: null
         },
         type: "Normal"
@@ -3654,6 +3807,7 @@ export var products_default_steam = [
             栖羽站: 3478,
             塔图站: 3301,
             黑月游乐城: 2974,
+            维蒂林场: 3100,
             阿妮塔战备工厂: null
         },
         type: "Special",
@@ -3684,7 +3838,8 @@ export var products_default_steam = [
             远星大桥: 3639,
             栖羽站: 3754,
             塔图站: 3726,
-            黑月游乐城: 3379
+            黑月游乐城: 3379,
+            维蒂林场: 3494
         },
         type: "Craft",
         craft: {
@@ -3716,7 +3871,8 @@ export var products_default_steam = [
             远星大桥: 7687,
             栖羽站: 9822,
             塔图站: 9051,
-            黑月游乐城: 8651
+            黑月游乐城: 8651,
+            维蒂林场: 8266
         },
         type: "Craft",
         craft: {
@@ -3747,7 +3903,8 @@ export var products_default_steam = [
             远星大桥: 4393,
             栖羽站: 5735,
             塔图站: 5190,
-            黑月游乐城: 5074
+            黑月游乐城: 5074,
+            维蒂林场: 4666
         },
         type: "Craft",
         craft: {
@@ -3779,7 +3936,8 @@ export var products_default_steam = [
             远星大桥: 2473,
             栖羽站: 2568,
             塔图站: 2530,
-            黑月游乐城: 2247
+            黑月游乐城: 2247,
+            维蒂林场: 2341
         },
         type: "Craft",
         craft: {
@@ -3812,7 +3970,8 @@ export var products_default_steam = [
             远星大桥: 7301,
             栖羽站: 8679,
             塔图站: 8162,
-            黑月游乐城: 8507
+            黑月游乐城: 8507,
+            维蒂林场: 7473
         },
         type: "Craft",
         craft: {
@@ -3826,25 +3985,26 @@ export var products_default_steam = [
         buyPrices: {},
         buyLot: {},
         sellPrices: {
-            七号自由港: 5546,
-            修格里城: 5123,
-            曼德矿场: 4982,
-            贡露城: 5546,
-            海角城: 5969,
-            荒原站: 4841,
-            淘金乐园: 5123,
-            阿妮塔能源研究所: 5546,
-            澄明数据中心: 5264,
-            岚心城: 5405,
-            铁盟哨站: 4982,
-            阿妮塔战备工厂: 5264,
-            阿妮塔发射中心: 5687,
-            云岫桥基地: 4841,
-            汇流塔: 6251,
-            远星大桥: 5546,
-            栖羽站: 5405,
-            塔图站: 5828,
-            黑月游乐城: 5546
+            七号自由港: 5782,
+            修格里城: 5341,
+            曼德矿场: 5194,
+            贡露城: 5782,
+            海角城: 6223,
+            荒原站: 5047,
+            淘金乐园: 5341,
+            阿妮塔能源研究所: 5782,
+            澄明数据中心: 5488,
+            岚心城: 5635,
+            铁盟哨站: 5194,
+            阿妮塔战备工厂: 5488,
+            阿妮塔发射中心: 5929,
+            云岫桥基地: 5047,
+            汇流塔: 6517,
+            远星大桥: 5782,
+            栖羽站: 5635,
+            塔图站: 6076,
+            黑月游乐城: 5782,
+            维蒂林场: 5488
         },
         type: "Craft",
         craft: {
@@ -3878,7 +4038,8 @@ export var products_default_steam = [
             远星大桥: 1779,
             栖羽站: 1558,
             塔图站: 1853,
-            黑月游乐城: 1730
+            黑月游乐城: 1730,
+            维蒂林场: 1607
         },
         type: "Craft",
         craft: {
@@ -3910,7 +4071,8 @@ export var products_default_steam = [
             远星大桥: 2475,
             栖羽站: 2355,
             塔图站: 2475,
-            黑月游乐城: 2515
+            黑月游乐城: 2515,
+            维蒂林场: 2375
         },
         type: "Craft",
         craft: {
@@ -3946,6 +4108,7 @@ export var products_default_steam = [
             栖羽站: 2122,
             塔图站: 1912,
             黑月游乐城: 1993,
+            维蒂林场: 1750,
             曼德矿场: null
         },
         type: "Special"
@@ -3977,6 +4140,7 @@ export var products_default_steam = [
             栖羽站: 2381,
             塔图站: 2267,
             黑月游乐城: 2120,
+            维蒂林场: 2006,
             阿妮塔发射中心: null
         },
         type: "Normal",
@@ -3991,7 +4155,7 @@ export var products_default_steam = [
             黑月游乐城: 441
         },
         buyLot: {
-            黑月游乐城: 1
+            黑月游乐城: 36
         },
         sellPrices: {
             七号自由港: 542,
@@ -4012,6 +4176,7 @@ export var products_default_steam = [
             修格里城: 512,
             远星大桥: 595,
             云岫桥基地: 551,
+            维蒂林场: 573,
             黑月游乐城: null
         },
         type: "Normal"
@@ -4039,7 +4204,8 @@ export var products_default_steam = [
             远星大桥: 3560,
             栖羽站: 3345,
             塔图站: 3646,
-            黑月游乐城: 3460
+            黑月游乐城: 3460,
+            维蒂林场: 3359
         },
         type: "Craft",
         craft: {
@@ -4074,6 +4240,7 @@ export var products_default_steam = [
             栖羽站: 1118,
             塔图站: 1095,
             黑月游乐城: 1118,
+            维蒂林场: 923,
             荒原站: null
         },
         type: "Special"
@@ -4101,7 +4268,8 @@ export var products_default_steam = [
             远星大桥: 4193,
             栖羽站: 3985,
             塔图站: 4193,
-            黑月游乐城: 4193
+            黑月游乐城: 4193,
+            维蒂林场: 3985
         },
         type: "Craft",
         craft: {
@@ -4133,7 +4301,8 @@ export var products_default_steam = [
             远星大桥: 2137,
             栖羽站: 1935,
             塔图站: 2137,
-            黑月游乐城: 2070
+            黑月游乐城: 2070,
+            维蒂林场: 2053
         },
         type: "Craft",
         craft: {
@@ -4165,7 +4334,8 @@ export var products_default_steam = [
             远星大桥: 1596,
             栖羽站: 1441,
             塔图站: 1634,
-            黑月游乐城: 1544
+            黑月游乐城: 1544,
+            维蒂林场: 1532
         },
         type: "Craft",
         craft: {
@@ -4199,7 +4369,8 @@ export var products_default_steam = [
             远星大桥: 1760,
             栖羽站: 1594,
             塔图站: 1760,
-            黑月游乐城: 1705
+            黑月游乐城: 1705,
+            维蒂林场: 1691
         },
         type: "Special",
         craft: {
@@ -4229,7 +4400,8 @@ export var products_default_steam = [
             远星大桥: 2640,
             栖羽站: 2453,
             塔图站: 2640,
-            黑月游乐城: 2620
+            黑月游乐城: 2620,
+            维蒂林场: 2474
         },
         type: "Craft",
         craft: {
@@ -4260,7 +4432,8 @@ export var products_default_steam = [
             岚心城: 5940,
             栖羽站: 5767,
             塔图站: 6287,
-            黑月游乐城: 5965
+            黑月游乐城: 5965,
+            维蒂林场: 5792
         },
         type: "Craft",
         craft: {
@@ -4292,7 +4465,8 @@ export var products_default_steam = [
             远星大桥: 1921,
             栖羽站: 2788,
             塔图站: 2448,
-            黑月游乐城: 2448
+            黑月游乐城: 2448,
+            维蒂林场: 2091
         },
         type: "Craft",
         craft: {
@@ -4323,7 +4497,8 @@ export var products_default_steam = [
             远星大桥: 1267,
             栖羽站: 1178,
             塔图站: 1267,
-            黑月游乐城: 1257
+            黑月游乐城: 1257,
+            维蒂林场: 1188
         },
         type: "Craft",
         craft: {
@@ -4358,6 +4533,7 @@ export var products_default_steam = [
             栖羽站: 1003,
             塔图站: 1131,
             黑月游乐城: 1088,
+            维蒂林场: 1071,
             云岫桥基地: null
         },
         type: "Special"
@@ -4389,6 +4565,7 @@ export var products_default_steam = [
             栖羽站: 3764,
             塔图站: 3305,
             黑月游乐城: 3305,
+            维蒂林场: 2823,
             海角城: null
         },
         type: "Special",
@@ -4420,7 +4597,8 @@ export var products_default_steam = [
             远星大桥: 1767,
             栖羽站: 1682,
             塔图站: 1767,
-            黑月游乐城: 1796
+            黑月游乐城: 1796,
+            维蒂林场: 1653
         },
         type: "Craft",
         craft: {
@@ -4451,7 +4629,8 @@ export var products_default_steam = [
             远星大桥: 1395,
             栖羽站: 1328,
             塔图站: 1395,
-            黑月游乐城: 1418
+            黑月游乐城: 1418,
+            维蒂林场: 1305
         },
         type: "Craft",
         craft: {
@@ -4485,6 +4664,7 @@ export var products_default_steam = [
             栖羽站: 848,
             塔图站: 932,
             黑月游乐城: 897,
+            维蒂林场: 862,
             云岫桥基地: null
         },
         type: "Special"
@@ -4516,6 +4696,7 @@ export var products_default_steam = [
             栖羽站: 673,
             塔图站: 727,
             黑月游乐城: 709,
+            维蒂林场: 673,
             云岫桥基地: null
         },
         type: "Normal"
@@ -4547,6 +4728,7 @@ export var products_default_steam = [
             栖羽站: 449,
             塔图站: 473,
             黑月游乐城: 461,
+            维蒂林场: 449,
             云岫桥基地: null
         },
         type: "Normal"
@@ -4578,6 +4760,7 @@ export var products_default_steam = [
             栖羽站: 328,
             塔图站: 355,
             黑月游乐城: 346,
+            维蒂林场: 337,
             云岫桥基地: null
         },
         type: "Normal",
@@ -4612,6 +4795,7 @@ export var products_default_steam = [
             栖羽站: 368,
             塔图站: 448,
             黑月游乐城: 416,
+            维蒂林场: 401,
             云岫桥基地: null
         },
         type: "Normal"
@@ -4643,6 +4827,7 @@ export var products_default_steam = [
             栖羽站: 225,
             塔图站: 243,
             黑月游乐城: 237,
+            维蒂林场: 231,
             云岫桥基地: null
         },
         type: "Normal"
@@ -4675,6 +4860,7 @@ export var products_default_steam = [
             远星大桥: 170,
             塔图站: 173,
             黑月游乐城: 162,
+            维蒂林场: 157,
             云岫桥基地: null,
             栖羽站: null
         },
@@ -4707,6 +4893,7 @@ export var products_default_steam = [
             栖羽站: 68,
             塔图站: 73,
             黑月游乐城: 71,
+            维蒂林场: 69,
             云岫桥基地: null
         },
         type: "Normal"
@@ -4734,7 +4921,8 @@ export var products_default_steam = [
             远星大桥: 885,
             栖羽站: 768,
             塔图站: 885,
-            黑月游乐城: 833
+            黑月游乐城: 833,
+            维蒂林场: 801
         },
         type: "Craft",
         craft: {
@@ -4765,7 +4953,8 @@ export var products_default_steam = [
             远星大桥: 1287,
             栖羽站: 1139,
             塔图站: 1317,
-            黑月游乐城: 1238
+            黑月游乐城: 1238,
+            维蒂林场: 1218
         },
         type: "Craft",
         craft: {
@@ -4795,7 +4984,8 @@ export var products_default_steam = [
             远星大桥: 1062,
             栖羽站: 1008,
             塔图站: 1089,
-            黑月游乐城: 1062
+            黑月游乐城: 1062,
+            维蒂林场: 1035
         },
         type: "Craft",
         craft: {
@@ -4827,7 +5017,8 @@ export var products_default_steam = [
             远星大桥: 3437,
             栖羽站: 3229,
             塔图站: 3604,
-            黑月游乐城: 3423
+            黑月游乐城: 3423,
+            维蒂林场: 3326
         },
         type: "Craft",
         craft: {
@@ -4859,7 +5050,8 @@ export var products_default_steam = [
             远星大桥: 2755,
             栖羽站: 2550,
             塔图站: 2755,
-            黑月游乐城: 2687
+            黑月游乐城: 2687,
+            维蒂林场: 2619
         },
         type: "Craft"
     },
@@ -4890,6 +5082,7 @@ export var products_default_steam = [
             栖羽站: 1958,
             塔图站: 1717,
             黑月游乐城: 1657,
+            维蒂林场: 1537,
             汇流塔: null
         },
         type: "Special"
@@ -4921,6 +5114,7 @@ export var products_default_steam = [
             栖羽站: 784,
             塔图站: 656,
             黑月游乐城: 624,
+            维蒂林场: 572,
             汇流塔: null
         },
         type: "Normal"
@@ -4948,7 +5142,8 @@ export var products_default_steam = [
             远星大桥: 2633,
             栖羽站: 2336,
             塔图站: 2633,
-            黑月游乐城: 2534
+            黑月游乐城: 2534,
+            维蒂林场: 2435
         },
         type: "Craft",
         craft: {
@@ -4978,7 +5173,8 @@ export var products_default_steam = [
             远星大桥: 4910,
             栖羽站: 4613,
             塔图站: 5029,
-            黑月游乐城: 4772
+            黑月游乐城: 4772,
+            维蒂林场: 4633
         },
         type: "Craft",
         craft: {
@@ -5010,7 +5206,8 @@ export var products_default_steam = [
             远星大桥: 2263,
             栖羽站: 2049,
             塔图站: 2263,
-            黑月游乐城: 2192
+            黑月游乐城: 2192,
+            维蒂林场: 2174
         },
         type: "Craft",
         craft: {
@@ -5041,7 +5238,8 @@ export var products_default_steam = [
             远星大桥: 3143,
             栖羽站: 2921,
             塔图站: 3143,
-            黑月游乐城: 3119
+            黑月游乐城: 3119,
+            维蒂林场: 2945
         },
         type: "Craft",
         craft: {
@@ -5072,7 +5270,8 @@ export var products_default_steam = [
             远星大桥: 1198,
             栖羽站: 1090,
             塔图站: 1225,
-            黑月游乐城: 1180
+            黑月游乐城: 1180,
+            维蒂林场: 1108
         },
         type: "Craft"
     },
@@ -5099,7 +5298,8 @@ export var products_default_steam = [
             远星大桥: 4174,
             栖羽站: 3921,
             塔图站: 4275,
-            黑月游乐城: 4056
+            黑月游乐城: 4056,
+            维蒂林场: 3938
         },
         type: "Craft",
         craft: {
@@ -5131,7 +5331,8 @@ export var products_default_steam = [
             远星大桥: 3683,
             栖羽站: 3460,
             塔图站: 3772,
-            黑月游乐城: 3579
+            黑月游乐城: 3579,
+            维蒂林场: 3475
         },
         type: "Craft",
         craft: {
@@ -5162,7 +5363,8 @@ export var products_default_steam = [
             远星大桥: 3234,
             栖羽站: 3074,
             塔图站: 3315,
-            黑月游乐城: 3154
+            黑月游乐城: 3154,
+            维蒂林场: 3074
         },
         type: "Craft",
         craft: {
@@ -5193,7 +5395,8 @@ export var products_default_steam = [
             远星大桥: 2946,
             栖羽站: 2768,
             塔图站: 3018,
-            黑月游乐城: 2863
+            黑月游乐城: 2863,
+            维蒂林场: 2780
         },
         type: "Craft",
         craft: {
@@ -5227,6 +5430,7 @@ export var products_default_steam = [
             远星大桥: 777,
             塔图站: 777,
             黑月游乐城: 747,
+            维蒂林场: 718,
             栖羽站: null
         },
         type: "Special",
@@ -5257,7 +5461,8 @@ export var products_default_steam = [
             远星大桥: 2097,
             栖羽站: 1912,
             塔图站: 2145,
-            黑月游乐城: 2020
+            黑月游乐城: 2020,
+            维蒂林场: 1942
         },
         type: "Craft"
     },
@@ -5284,7 +5489,8 @@ export var products_default_steam = [
             远星大桥: 3928,
             栖羽站: 3691,
             塔图站: 4023,
-            黑月游乐城: 3817
+            黑月游乐城: 3817,
+            维蒂林场: 3707
         },
         type: "Craft",
         craft: {
@@ -5319,6 +5525,7 @@ export var products_default_steam = [
             栖羽站: 606,
             塔图站: 531,
             黑月游乐城: 591,
+            维蒂林场: 531,
             淘金乐园: null
         },
         type: "Normal",
@@ -5354,6 +5561,7 @@ export var products_default_steam = [
             栖羽站: 634,
             塔图站: 619,
             黑月游乐城: 574,
+            维蒂林场: 589,
             七号自由港: null
         },
         type: "Normal",
@@ -5389,6 +5597,7 @@ export var products_default_steam = [
             栖羽站: 716,
             塔图站: 667,
             黑月游乐城: 650,
+            维蒂林场: 634,
             阿妮塔能源研究所: null
         },
         type: "Normal",
@@ -5423,6 +5632,7 @@ export var products_default_steam = [
             栖羽站: 2577,
             塔图站: 2502,
             黑月游乐城: 2201,
+            维蒂林场: 2238,
             澄明数据中心: null
         },
         type: "Special",
@@ -5454,7 +5664,8 @@ export var products_default_steam = [
             远星大桥: 1827,
             栖羽站: 2034,
             塔图站: 1975,
-            黑月游乐城: 1737
+            黑月游乐城: 1737,
+            维蒂林场: 1767
         },
         type: "Craft",
         craft: {
@@ -5489,6 +5700,7 @@ export var products_default_steam = [
             栖羽站: 998,
             塔图站: 949,
             黑月游乐城: 899,
+            维蒂林场: 899,
             修格里城: null
         },
         type: "Normal",
@@ -5519,7 +5731,8 @@ export var products_default_steam = [
             远星大桥: 8814,
             栖羽站: 9360,
             塔图站: 9204,
-            黑月游乐城: 8580
+            黑月游乐城: 8580,
+            维蒂林场: 8658
         },
         type: "Craft",
         craft: {
@@ -5551,7 +5764,8 @@ export var products_default_steam = [
             远星大桥: 4602,
             栖羽站: 4953,
             塔图站: 4836,
-            黑月游乐城: 4368
+            黑月游乐城: 4368,
+            维蒂林场: 4485
         },
         type: "Craft",
         craft: {
@@ -5586,6 +5800,7 @@ export var products_default_steam = [
             栖羽站: 2586,
             塔图站: 2214,
             黑月游乐城: 2074,
+            维蒂林场: 1830,
             汇流塔: null
         },
         type: "Special"
@@ -5613,7 +5828,8 @@ export var products_default_steam = [
             云岫桥基地: 2790,
             栖羽站: 2993,
             塔图站: 2925,
-            黑月游乐城: 2723
+            黑月游乐城: 2723,
+            维蒂林场: 2655
         },
         type: "Craft"
     },
@@ -5640,7 +5856,8 @@ export var products_default_steam = [
             岚心城: 4158,
             栖羽站: 4420,
             塔图站: 5780,
-            黑月游乐城: 5655
+            黑月游乐城: 5655,
+            维蒂林场: 5380
         },
         type: "Craft",
         craft: {
@@ -5676,6 +5893,7 @@ export var products_default_steam = [
             栖羽站: 5788,
             塔图站: 7569,
             黑月游乐城: 7405,
+            维蒂林场: 7046,
             岚心城: null
         },
         type: "Special",
@@ -5708,7 +5926,8 @@ export var products_default_steam = [
             岚心城: 10989,
             栖羽站: 10791,
             塔图站: 11385,
-            黑月游乐城: 11187
+            黑月游乐城: 11187,
+            维蒂林场: 10989
         },
         type: "Craft",
         craft: {
@@ -5746,6 +5965,7 @@ export var products_default_steam = [
             栖羽站: 584,
             塔图站: 479,
             黑月游乐城: 522,
+            维蒂林场: 380,
             远星大桥: null
         },
         type: "Normal"
@@ -5777,6 +5997,7 @@ export var products_default_steam = [
             栖羽站: 324,
             塔图站: 262,
             黑月游乐城: 291,
+            维蒂林场: 202,
             远星大桥: null
         },
         type: "Normal"
@@ -5808,6 +6029,7 @@ export var products_default_steam = [
             栖羽站: 4529,
             塔图站: 3993,
             黑月游乐城: 3859,
+            维蒂林场: 3430,
             汇流塔: null
         },
         type: "Special"
@@ -5839,6 +6061,7 @@ export var products_default_steam = [
             栖羽站: 3600,
             塔图站: 5199,
             黑月游乐城: 5099,
+            维蒂林场: 4766,
             岚心城: null
         },
         type: "Special"
@@ -5870,6 +6093,7 @@ export var products_default_steam = [
             栖羽站: 3320,
             塔图站: 2980,
             黑月游乐城: 2820,
+            维蒂林场: 2560,
             汇流塔: null
         },
         type: "Special"
@@ -5901,6 +6125,7 @@ export var products_default_steam = [
             栖羽站: 1434,
             塔图站: 1261,
             黑月游乐城: 1218,
+            维蒂林场: 1106,
             汇流塔: null
         },
         type: "Special"
@@ -5932,6 +6157,7 @@ export var products_default_steam = [
             栖羽站: 1456,
             塔图站: 1301,
             黑月游乐城: 1263,
+            维蒂林场: 1157,
             汇流塔: null
         },
         type: "Normal"
@@ -5963,6 +6189,7 @@ export var products_default_steam = [
             栖羽站: 525,
             塔图站: 433,
             黑月游乐城: 412,
+            维蒂林场: 370,
             汇流塔: null
         },
         type: "Normal"
@@ -5994,6 +6221,7 @@ export var products_default_steam = [
             栖羽站: 251,
             塔图站: 210,
             黑月游乐城: 200,
+            维蒂林场: 179,
             汇流塔: null
         },
         type: "Normal"
@@ -6021,7 +6249,8 @@ export var products_default_steam = [
             云岫桥基地: 3990,
             栖羽站: 4358,
             塔图站: 4205,
-            黑月游乐城: 3867
+            黑月游乐城: 3867,
+            维蒂林场: 3652
         },
         type: "Craft",
         craft: {
@@ -6057,6 +6286,7 @@ export var products_default_steam = [
             栖羽站: 3173,
             塔图站: 2752,
             黑月游乐城: 3025,
+            维蒂林场: 2374,
             远星大桥: null
         },
         type: "Special",
@@ -6092,6 +6322,7 @@ export var products_default_steam = [
             栖羽站: 2131,
             塔图站: 1843,
             黑月游乐城: 2030,
+            维蒂林场: 1584,
             远星大桥: null
         },
         type: "Normal"
@@ -6123,6 +6354,7 @@ export var products_default_steam = [
             栖羽站: 1729,
             塔图站: 1497,
             黑月游乐城: 1629,
+            维蒂林场: 1266,
             远星大桥: null
         },
         type: "Special",
@@ -6157,6 +6389,7 @@ export var products_default_steam = [
             栖羽站: 1756,
             塔图站: 1425,
             黑月游乐城: 1577,
+            维蒂林场: 1102,
             远星大桥: null
         },
         type: "Special"
@@ -6188,6 +6421,7 @@ export var products_default_steam = [
             栖羽站: 1117,
             塔图站: 986,
             黑月游乐城: 1086,
+            维蒂林场: 847,
             远星大桥: null
         },
         type: "Normal"
@@ -6219,6 +6453,7 @@ export var products_default_steam = [
             栖羽站: 1081,
             塔图站: 874,
             黑月游乐城: 969,
+            维蒂林场: 689,
             远星大桥: null
         },
         type: "Special"
@@ -6250,6 +6485,7 @@ export var products_default_steam = [
             栖羽站: 532,
             塔图站: 470,
             黑月游乐城: 495,
+            维蒂林场: 404,
             远星大桥: null
         },
         type: "Normal"
@@ -6281,6 +6517,7 @@ export var products_default_steam = [
             栖羽站: 81,
             塔图站: 70,
             黑月游乐城: 76,
+            维蒂林场: 62,
             远星大桥: null
         },
         type: "Normal"
@@ -6307,7 +6544,8 @@ export var products_default_steam = [
             修格里城: 9919,
             栖羽站: 10056,
             塔图站: 10465,
-            黑月游乐城: 10056
+            黑月游乐城: 10056,
+            维蒂林场: 9919
         },
         type: "Craft"
     },
@@ -6338,6 +6576,7 @@ export var products_default_steam = [
             云岫桥基地: 1903,
             塔图站: 2375,
             黑月游乐城: 2249,
+            维蒂林场: 2218,
             栖羽站: null
         },
         type: "Special"
@@ -6369,6 +6608,7 @@ export var products_default_steam = [
             云岫桥基地: 1437,
             塔图站: 1865,
             黑月游乐城: 1794,
+            维蒂林场: 1723,
             栖羽站: null
         },
         type: "Special",
@@ -6405,6 +6645,7 @@ export var products_default_steam = [
             云岫桥基地: 958,
             塔图站: 1243,
             黑月游乐城: 1196,
+            维蒂林场: 1148,
             栖羽站: null
         },
         type: "Special",
@@ -6439,6 +6680,7 @@ export var products_default_steam = [
             云岫桥基地: 1078,
             塔图站: 1372,
             黑月游乐城: 1345,
+            维蒂林场: 1292,
             栖羽站: null
         },
         type: "Special",
@@ -6475,6 +6717,7 @@ export var products_default_steam = [
             远星大桥: 882,
             塔图站: 898,
             黑月游乐城: 841,
+            维蒂林场: 816,
             栖羽站: null
         },
         type: "Normal"
@@ -6506,6 +6749,7 @@ export var products_default_steam = [
             远星大桥: 376,
             塔图站: 382,
             黑月游乐城: 356,
+            维蒂林场: 343,
             栖羽站: null
         },
         type: "Normal"
@@ -6513,10 +6757,12 @@ export var products_default_steam = [
     {
         name: "树脂",
         buyPrices: {
-            栖羽站: 624
+            栖羽站: 624,
+            维蒂林场: 842
         },
         buyLot: {
-            栖羽站: 24
+            栖羽站: 24,
+            维蒂林场: 24
         },
         sellPrices: {
             七号自由港: 892,
@@ -6537,7 +6783,8 @@ export var products_default_steam = [
             修格里城: 830,
             塔图站: 905,
             黑月游乐城: 892,
-            栖羽站: null
+            栖羽站: null,
+            维蒂林场: null
         },
         type: "Normal"
     },
@@ -6568,6 +6815,7 @@ export var products_default_steam = [
             远星大桥: 708,
             云岫桥基地: 745,
             黑月游乐城: 764,
+            维蒂林场: 671,
             塔图站: null
         },
         type: "Normal"
@@ -6599,6 +6847,7 @@ export var products_default_steam = [
             云岫桥基地: 704,
             栖羽站: 782,
             黑月游乐城: 756,
+            维蒂林场: 627,
             塔图站: null
         },
         type: "Normal"
@@ -6630,6 +6879,7 @@ export var products_default_steam = [
             远星大桥: 483,
             云岫桥基地: 496,
             黑月游乐城: 521,
+            维蒂林场: 458,
             塔图站: null
         },
         type: "Normal"
@@ -6661,6 +6911,7 @@ export var products_default_steam = [
             远星大桥: 362,
             云岫桥基地: 381,
             黑月游乐城: 391,
+            维蒂林场: 343,
             塔图站: null
         },
         type: "Normal"
@@ -6692,6 +6943,7 @@ export var products_default_steam = [
             远星大桥: 169,
             云岫桥基地: 165,
             黑月游乐城: 174,
+            维蒂林场: 153,
             塔图站: null
         },
         type: "Normal"
@@ -6723,6 +6975,7 @@ export var products_default_steam = [
             修格里城: 1640,
             远星大桥: 1951,
             云岫桥基地: 1810,
+            维蒂林场: 1881,
             黑月游乐城: null
         },
         type: "Special"
@@ -6754,6 +7007,7 @@ export var products_default_steam = [
             修格里城: 731,
             远星大桥: 869,
             云岫桥基地: 806,
+            维蒂林场: 838,
             黑月游乐城: null
         },
         type: "Normal"
@@ -6785,6 +7039,7 @@ export var products_default_steam = [
             修格里城: 2545,
             远星大桥: 3224,
             云岫桥基地: 2927,
+            维蒂林场: 3075,
             黑月游乐城: null
         },
         type: "Special"
@@ -6816,6 +7071,7 @@ export var products_default_steam = [
             修格里城: 1489,
             远星大桥: 1878,
             云岫桥基地: 1800,
+            维蒂林场: 1800,
             黑月游乐城: null
         },
         type: "Special"
@@ -6847,6 +7103,7 @@ export var products_default_steam = [
             修格里城: 904,
             远星大桥: 1272,
             云岫桥基地: 1169,
+            维蒂林场: 1198,
             黑月游乐城: null
         },
         type: "Special"
@@ -6857,7 +7114,7 @@ export var products_default_steam = [
             黑月游乐城: 574
         },
         buyLot: {
-            黑月游乐城: 1
+            黑月游乐城: 30
         },
         sellPrices: {
             七号自由港: 723,
@@ -6878,6 +7135,7 @@ export var products_default_steam = [
             修格里城: 666,
             远星大桥: 775,
             云岫桥基地: 718,
+            维蒂林场: 746,
             黑月游乐城: null
         },
         type: "Normal"
@@ -6909,6 +7167,7 @@ export var products_default_steam = [
             修格里城: 337,
             远星大桥: 561,
             云岫桥基地: 469,
+            维蒂林场: 515,
             黑月游乐城: null
         },
         type: "Special"
@@ -6940,6 +7199,7 @@ export var products_default_steam = [
             修格里城: 187,
             远星大桥: 217,
             云岫桥基地: 201,
+            维蒂林场: 209,
             黑月游乐城: null
         },
         type: "Normal"
@@ -6974,6 +7234,158 @@ export var products_default_steam = [
             钛合金: 0.75,
             铁轨用特种钢材: 0.375
         }
+    },
+    {
+        name: "黑胡桃木座钟",
+        buyPrices: {
+            维蒂林场: 3375
+        },
+        buyLot: {
+            维蒂林场: 8
+        },
+        sellPrices: {
+            贡露城: 3713,
+            维蒂林场: null
+        },
+        type: "Special",
+        craft: {
+            胡桃木: 0.375,
+            精密木构件: 0.1875,
+            曼德工具箱: 0.1875
+        }
+    },
+    {
+        name: "优质松木",
+        buyPrices: {
+            维蒂林场: 775
+        },
+        buyLot: {
+            维蒂林场: 28
+        },
+        sellPrices: {
+            贡露城: 837,
+            维蒂林场: null
+        },
+        type: "Normal"
+    },
+    {
+        name: "白蜡木",
+        buyPrices: {
+            维蒂林场: 1075
+        },
+        buyLot: {
+            维蒂林场: 20
+        },
+        sellPrices: {
+            贡露城: 1193,
+            维蒂林场: null
+        },
+        type: "Normal"
+    },
+    {
+        name: "胡桃木",
+        buyPrices: {
+            维蒂林场: 1475
+        },
+        buyLot: {
+            维蒂林场: 16
+        },
+        sellPrices: {
+            贡露城: 1637,
+            维蒂林场: null
+        },
+        type: "Special"
+    },
+    {
+        name: "精密木构件",
+        buyPrices: {
+            维蒂林场: 975
+        },
+        buyLot: {
+            维蒂林场: 24
+        },
+        sellPrices: {
+            贡露城: 1053,
+            维蒂林场: null
+        },
+        type: "Normal"
+    },
+    {
+        name: "树脂复合木板",
+        buyPrices: {
+            维蒂林场: 675
+        },
+        buyLot: {
+            维蒂林场: 1
+        },
+        sellPrices: {
+            贡露城: 695,
+            维蒂林场: null
+        },
+        type: "Normal",
+        craft: {
+            优质松木: 0.0625,
+            树脂: 0.125
+        }
+    },
+    {
+        name: "精钢伐木斧",
+        buyPrices: {
+            维蒂林场: 1775
+        },
+        buyLot: {
+            维蒂林场: 16
+        },
+        sellPrices: {
+            贡露城: 1828,
+            维蒂林场: null
+        },
+        type: "Normal",
+        craft: {
+            白蜡木: 0.125,
+            精钢: 0.125
+        }
+    },
+    {
+        name: "高山云杉",
+        buyPrices: {
+            维蒂林场: 2175
+        },
+        buyLot: {
+            维蒂林场: 12
+        },
+        sellPrices: {
+            贡露城: 2414,
+            维蒂林场: null
+        },
+        type: "Special"
+    },
+    {
+        name: "烟熏橡木",
+        buyPrices: {
+            维蒂林场: 1275
+        },
+        buyLot: {
+            维蒂林场: 16
+        },
+        sellPrices: {
+            贡露城: 1415,
+            维蒂林场: null
+        },
+        type: "Special"
+    },
+    {
+        name: "松香",
+        buyPrices: {
+            维蒂林场: 375
+        },
+        buyLot: {
+            维蒂林场: 36
+        },
+        sellPrices: {
+            贡露城: 405,
+            维蒂林场: null
+        },
+        type: "Normal"
     }
 ]
-

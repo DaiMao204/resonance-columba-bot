@@ -850,8 +850,8 @@ export async function get_price_steam(){
   const onegraphBuyCombinationsRtNoBargain = calculateOneGraphBuyCombinations(responseDataSteam, BotConfigSteam.maxLot, BotConfigNoReturnBargainSteam.returnBargain, BotConfigSteam.prestige, BotConfigSteam.roles, BotConfigSteam.productUnlockStatus, BotConfigSteam.events,CITIESSTEAM);
   
   //console.log(onegraphBuyCombinationsGo)
-  output_str_steam = output_str_steam + "综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 800货仓\n";
-  low_output_str_steam = low_output_str_steam + "无海角城版本综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 800货仓\n";
+  output_str_steam = output_str_steam + "综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 1000货仓\n";
+  low_output_str_steam = low_output_str_steam + "无海角城版本综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 1000货仓\n";
   small_output_str_steam = small_output_str_steam + "综合利润往返跑商行情第一名\n\n";
   //console.log("单票利润往返跑商行情 满抬砍 满声望 满共振 1016货仓")
 

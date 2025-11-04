@@ -156,6 +156,24 @@ var FATIGUES = [
 { cities: ["黑月游乐城", "栖羽站"], fatigue: 57 },
 { cities: ["黑月游乐城", "岚心城"], fatigue: 63 },
 { cities: ["黑月游乐城", "塔图站"], fatigue: 53 },
+{ cities: ["维蒂林场", "修格里城"], fatigue: 31 },
+{ cities: ["维蒂林场", "铁盟哨站"], fatigue: 27 },
+{ cities: ["维蒂林场", "七号自由港"], fatigue: 42 },
+{ cities: ["维蒂林场", "澄明数据中心"], fatigue: 36 },
+{ cities: ["维蒂林场", "阿妮塔战备工厂"], fatigue: 40 },
+{ cities: ["维蒂林场", "阿妮塔能源研究所"], fatigue: 34 },
+{ cities: ["维蒂林场", "荒原站"], fatigue: 28 },
+{ cities: ["维蒂林场", "曼德矿场"], fatigue: 24 },
+{ cities: ["维蒂林场", "淘金乐园"], fatigue: 24 },
+{ cities: ["维蒂林场", "阿妮塔发射中心"], fatigue: 42 },
+{ cities: ["维蒂林场", "海角城"], fatigue: 35 },
+{ cities: ["维蒂林场", "云岫桥基地"], fatigue: 35 },
+{ cities: ["维蒂林场", "汇流塔"], fatigue: 38 },
+{ cities: ["维蒂林场", "远星大桥"], fatigue: 24 },
+{ cities: ["维蒂林场", "栖羽站"], fatigue: 50 },
+{ cities: ["维蒂林场", "岚心城"], fatigue: 56 },
+{ cities: ["维蒂林场", "塔图站"], fatigue: 32 },
+{ cities: ["维蒂林场", "黑月游乐城"], fatigue: 45 },
 { cities: ["贡露城", "修格里城"], fatigue: 37 },
 { cities: ["贡露城", "铁盟哨站"], fatigue: 34 },
 { cities: ["贡露城", "七号自由港"], fatigue: 36 },
@@ -173,7 +191,8 @@ var FATIGUES = [
 { cities: ["贡露城", "栖羽站"], fatigue: 56 },
 { cities: ["贡露城", "岚心城"], fatigue: 62 },
 { cities: ["贡露城", "塔图站"], fatigue: 39 },
-{ cities: ["贡露城", "黑月游乐城"], fatigue: 51 }
+{ cities: ["贡露城", "黑月游乐城"], fatigue: 51 },
+{ cities: ["贡露城", "维蒂林场"], fatigue: 24 }
 ];
 
 export const findFatigue = (fromCity: string, toCity: string, playerConfigRoles: PlayerConfigRoles): number => {

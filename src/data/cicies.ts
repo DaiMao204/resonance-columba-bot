@@ -20,7 +20,8 @@ export const cityList = [
     "岚心城",
     "塔图站",
     "黑月游乐城",
-    "贡露城"
+    "贡露城",
+    "维蒂林场"
   ];
   
 export const cityListSteam = [
@@ -33,6 +34,8 @@ export const cityListSteam = [
     "荒原站",
     "曼德矿场",
     "淘金乐园",
+    "阿妮塔发射中心",
+    "岚心城"
   ];
 
 export var cityItemList = {};

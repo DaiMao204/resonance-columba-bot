@@ -847,6 +847,39 @@ export var resonanceskills_default = {
                 }
             }
         }
+    },
+    嘉尔: {
+        "4": {
+            buyMore: {
+                product: {
+                    碳纤维: 20,
+                    棉花: 20,
+                    亚麻: 20,
+                    尼龙: 20,
+                    绣线: 20,
+                    涤纶: 20,
+                    羊毛: 20,
+                    芳纶纤维: 20,
+                    羊绒: 20,
+                    雪纺: 20,
+                    羽绒: 20,
+                    蚕丝: 20,
+                    金丝: 20,
+                    太空棉: 20,
+                    玄武岩纤维: 20,
+                    鹅绒: 20
+                }
+            }
+        }
+    },
+    陈书闲: {
+        "1": {
+            buyMore: {
+                city: {
+                    阿妮塔战备工厂: 20
+                }
+            }
+        }
     }
 }
 export var role_resonanceskills = {
@@ -999,6 +1032,12 @@ export var role_resonanceskills = {
     },
     时萝: {
         resonance: 5
+    },
+    嘉尔: {
+        resonance: 4
+    },
+    陈书闲: {
+        resonance: 1
     }
 }
 export var products_default = [
@@ -7044,12 +7083,8 @@ export var products_default = [
     },
     {
         name: "飞弹",
-        buyPrices: {
-            云岫桥基地: 9100
-        },
-        buyLot: {
-            云岫桥基地: 1
-        },
+        buyPrices: {},
+        buyLot: {},
         sellPrices: {
             七号自由港: 10056,
             阿妮塔发射中心: 10602,
@@ -7069,10 +7104,9 @@ export var products_default = [
             栖羽站: 10056,
             塔图站: 10465,
             黑月游乐城: 10056,
-            维蒂林场: 9919,
-            云岫桥基地: null
+            维蒂林场: 9919
         },
-        type: "Normal"
+        type: "Craft"
     },
     {
         name: "碳钢匕首",
@@ -8126,3 +8160,4 @@ export var products_default = [
         type: "Normal"
     }
 ]
+

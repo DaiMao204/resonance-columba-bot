@@ -5,7 +5,7 @@ import { role_resonanceskills_steam } from "../data/data-steam"
 
 
 export var BotConfig:PlayerConfig = {
-  maxLot: 1016,
+  maxLot: 1136,
   tradeLevel: 75,
   bargain: {
     bargainPercent: 20,
@@ -104,7 +104,7 @@ export var BotConfig:PlayerConfig = {
 }
 
 export var BotConfigNoReturnBargain:PlayerConfig = {
-  maxLot: 1016,
+  maxLot: 1136,
   tradeLevel: 75,
   bargain: {
     bargainPercent: 20,
@@ -203,7 +203,7 @@ export var BotConfigNoReturnBargain:PlayerConfig = {
 }
 
 export var BotConfigSteam:PlayerConfig = {
-  maxLot: 800,
+  maxLot: 1100,
   tradeLevel: 70,
   bargain: {
     bargainPercent: 20,
@@ -302,7 +302,7 @@ export var BotConfigSteam:PlayerConfig = {
 }
 
 export var BotConfigNoReturnBargainSteam:PlayerConfig = {
-  maxLot: 800,
+  maxLot: 1100,
   tradeLevel: 70,
   bargain: {
     bargainPercent: 20,

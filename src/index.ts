@@ -398,8 +398,8 @@ export function send_error(str){
 }
 
 function send_message(price){
-  if (price >= 10000 && send_flag_max && MaxTeamList.length != 0) {
-    ctx_send.bots["onebot:" + qqID].broadcast(MaxTeamList, (h('at', { type: "all" })) + "当前有10000+大行情 综合利润" + price + "\n" + output_str);
+  if (price >= 11360 && send_flag_max && MaxTeamList.length != 0) {
+    ctx_send.bots["onebot:" + qqID].broadcast(MaxTeamList, (h('at', { type: "all" })) + "当前有11360+大行情 综合利润" + price + "\n" + output_str);
     send_flag_max = false;
     sendMaxTimerId = setTimeout(flagMaxTimer, 72e5, true);
     console.log("触发超大行情通告，延迟2小时");
@@ -442,8 +442,8 @@ function send_message(price){
 function send_low_message(price){
   //console.log("whyNotSendMessage")
   //console.log(price)
-  if (price >= 10000 && send_flag_max && MaxTeamList.length != 0) {
-    ctx_send.bots["onebot:" + qqID].broadcast(MaxTeamList, (h('at', { type: "all" })) + "当前有10000+大行情 综合利润" + price);
+  if (price >= 11360 && send_flag_max && MaxTeamList.length != 0) {
+    ctx_send.bots["onebot:" + qqID].broadcast(MaxTeamList, (h('at', { type: "all" })) + "当前有11360+大行情 综合利润" + price);
     send_flag_max = false;
     sendMaxTimerId = setTimeout(flagMaxTimer, 72e5, true);
     console.log("触发超大行情通告，延迟2小时");
@@ -504,12 +504,12 @@ function get_max_price() {
 
 var ti;
 var tiInterval;
-var nextTi = Date.now() / 1000 - 60;
+var nextTi = Date.now() / 1136 - 60;
 var waitTi = 0;
 
 var tiSteam;
 var tiIntervalSteam;
-var nextTiSteam = Date.now() / 1000 - 60;
+var nextTiSteam = Date.now() / 1136 - 60;
 var waitTiSteam = 0;
 
 export async function get_price(){
@@ -696,10 +696,10 @@ export async function get_price(){
   const onegraphBuyCombinationsRtNoBargain = calculateOneGraphBuyCombinations(responseData, BotConfig.maxLot, BotConfigNoReturnBargain.returnBargain, BotConfig.prestige, BotConfig.roles, BotConfig.productUnlockStatus, BotConfig.events,CITIES);
   
   //console.log(onegraphBuyCombinationsGo)
-  output_str = output_str + "综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 1016货仓\n";
-  low_output_str = low_output_str + "无海角城版本综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 1016货仓\n";
+  output_str = output_str + "综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 1136货仓\n";
+  low_output_str = low_output_str + "无海角城版本综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 1136货仓\n";
   small_output_str = small_output_str + "综合利润往返跑商行情第一名\n\n";
-  //console.log("单票利润往返跑商行情 满抬砍 满声望 满共振 1016货仓")
+  //console.log("单票利润往返跑商行情 满抬砍 满声望 满共振 1136货仓")
 
   let max_price = 0;
   let max_price_str = "";
@@ -850,10 +850,10 @@ export async function get_price_steam(){
   const onegraphBuyCombinationsRtNoBargain = calculateOneGraphBuyCombinations(responseDataSteam, BotConfigSteam.maxLot, BotConfigNoReturnBargainSteam.returnBargain, BotConfigSteam.prestige, BotConfigSteam.roles, BotConfigSteam.productUnlockStatus, BotConfigSteam.events,CITIESSTEAM);
   
   //console.log(onegraphBuyCombinationsGo)
-  output_str_steam = output_str_steam + "综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 1000货仓\n";
-  low_output_str_steam = low_output_str_steam + "无海角城版本综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 1000货仓\n";
+  output_str_steam = output_str_steam + "综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 1136货仓\n";
+  low_output_str_steam = low_output_str_steam + "无海角城版本综合利润往返跑商行情 20疲劳满抬砍 满声望 满共振 1136货仓\n";
   small_output_str_steam = small_output_str_steam + "综合利润往返跑商行情第一名\n\n";
-  //console.log("单票利润往返跑商行情 满抬砍 满声望 满共振 1016货仓")
+  //console.log("单票利润往返跑商行情 满抬砍 满声望 满共振 1136货仓")
 
   let max_price = 0;
   let max_price_str = "";
@@ -1621,7 +1621,7 @@ export function apply(ctx: Context, config: Config) {
       var num = session.content.slice(8)
       num = num.trim()
       if (num == "")
-        num = "1016"
+        num = "1136"
 
       if (updataNum > 5)
         return "数据源出现严重错误，请通知管理员处理"
@@ -1645,17 +1645,17 @@ export function apply(ctx: Context, config: Config) {
 
       var price = Math.round(sellPrice * 1.2 - buyPrice * 0.75 * 0.8)
       //console.log(sellPrice, buyPrice)
-      var needNum = Math.ceil(10000000 / ((sellPrice * 1.2) - (buyPrice * 0.75 * 0.8)))
+      var needNum = Math.ceil(11360000 / ((sellPrice * 1.2) - (buyPrice * 0.75 * 0.8)))
       var outputStr = "点石成金成就计算\n三级制造台 满抬满砍 未计算副产 未计算垃圾\n\n"
-      if (needNum <= 1016 && +num >= needNum ){
+      if (needNum <= 1136 && +num >= needNum ){
         outputStr = outputStr + "当前最低沙金 淘金乐园 " + buyVariation + buyTrend_updown + " " + buyPrice + "\n"
         outputStr = outputStr + "当前最高金线 " + sellCity + " " + sellVariation + sellTrend_updown + " 利润：" + price + "\n"
         outputStr = outputStr + "当前行情可以直接完成点石成金成就\n"
         outputStr = outputStr + "大概所需金线数量" + needNum.toString()
       }
       else{
-        let needPrice = (+num * sellPrice * 1.2 - 10000000) / (+num * 0.75 * 0.8)
-        //let needPrice = (+num * 8525 * 1.2 *  1.2 - 10000000) / (+num * 0.75 * 0.8)
+        let needPrice = (+num * sellPrice * 1.2 - 11360000) / (+num * 0.75 * 0.8)
+        //let needPrice = (+num * 8525 * 1.2 *  1.2 - 11360000) / (+num * 0.75 * 0.8)
         let needVariation =  Math.floor(needPrice / buyPrice * 100)
         //console.log(needPrice)
         //console.log(needVariation)
@@ -1663,9 +1663,9 @@ export function apply(ctx: Context, config: Config) {
           outputStr = outputStr + "当前最低沙金 淘金乐园 " + buyVariation + buyTrend_updown + " " + buyPrice + "\n"
           outputStr = outputStr + "当前最高金线 " + sellCity + " " + sellVariation + sellTrend_updown + " 利润：" + price + "\n"
           outputStr = outputStr + "当前价格无法直接完成点石成金成就\n\n"
-          // 10000000 = 1016 * sellPrice * 1.2 - 1016 * buyPrice * 0.75 * 0.8
-          // 1016 * buyPrice * 0.75 * 0.8 = (1016 * sellPrice * 1.2 - 10000000)
-          // buyPrice  = (1016 * sellPrice * 1.2 - 10000000) / (1016 * 0.75 * 0.8)
+          // 11360000 = 1136 * sellPrice * 1.2 - 1136 * buyPrice * 0.75 * 0.8
+          // 1136 * buyPrice * 0.75 * 0.8 = (1136 * sellPrice * 1.2 - 11360000)
+          // buyPrice  = (1136 * sellPrice * 1.2 - 11360000) / (1136 * 0.75 * 0.8)
           outputStr = outputStr + "假如你已有金线数量为" + num + "\n\n"
 
           outputStr = outputStr + "你需要保证你购买的沙金价格大概在" + needVariation + "%" + "及以下才能达成成就"

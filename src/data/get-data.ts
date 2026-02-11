@@ -7,12 +7,14 @@ import { cityattachlist_default,resonanceskills_default,products_default } from 
 const https = require('https');
 const vm = require('vm');
 
-export async function updata_columba_data (ctx,startUrl = "", flag = false){
+export async function updata_columba_data (ctx,startUrl = "", flag = false, steamFlag = false){
     cicies_set(cityattachlist_default)
     roleSkills_set(resonanceskills_default)
     products_set_new(products_default)
     if (flag) {
         get_price();
+    }
+    if (steamFlag){
         get_price_steam()
     }
     cityItems_set()

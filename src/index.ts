@@ -30,6 +30,7 @@ export interface Config {
   ErrorTeamList: Array<string>
   MaxTeamList: Array<string>
   ErrorItemList: Array<string>
+  SteamOpen: boolean
   SteamTeamList: Array<string>
   ItemSendList: Dict<Dict<ConfigItemList,string> , string>
   StartUrl: string
@@ -73,6 +74,7 @@ export const Config: Schema<Config> = Schema.object({
   ErrorTeamList: Schema.array(Schema.string()).default([]).description("错误提醒广播群组列表"),
   MaxTeamList: Schema.array(Schema.string()).default([]).description("@全体大行情通知群组列表"),
   ErrorItemList: Schema.array(Schema.string()).default([]).description("屏蔽商品名称列表"),
+  SteamOpen:Schema.boolean().default(false).description("是否开启steam服行情"),
   SteamTeamList: Schema.array(Schema.string()).default([]).description("steam服群组列表"),
   ItemSendList: Schema.dict(Schema.dict(ConfigItemList.description("商品名称"), Schema.string()).description("群号"), Schema.string()).description("商品行情通告表"),
   StartUrl: Schema.string().description("启动APIURL，默认留空")
@@ -794,9 +796,9 @@ export async function get_price(){
 }
 
 export async function get_price_steam(){
-  var getDataUrlSteam = "https://reso-online-steam.soli-reso.com/get_server_trade/"
+  var getDataUrlSteam = "https://jp-prd-rzns.gameduchy.com/get_server_trade/"
   let tiNow = Date.now() / 1e3;
-  console.log("Steam服")
+  console.log("日服（STEAM）")
   console.log(tiNow);
   console.log(nextTiSteam);
   if (tiNow < nextTiSteam) {
@@ -952,6 +954,7 @@ export function apply(ctx: Context, config: Config) {
   ctx.on("ready", () => {
     ctx_send = ctx;
     const time = ctx.config.TimerTime * 6e4;
+    let SteamOpen: boolean = false;
     smallPrice = ctx.config.SmallPrice;
     if (ctx.config.TeamList.length != 0)
       TeamList = ctx.config.TeamList;
@@ -965,6 +968,7 @@ export function apply(ctx: Context, config: Config) {
       ShortTeamList = ctx.config.ShortTeamList;
     if (ctx.config.SteamTeamList.lenth != 0)
       SteamTeamList = ctx.config.SteamTeamList;
+    SteamOpen = ctx.config.SteamOpen;
     bigPrice = ctx.config.BigPrice;
     lowBigPrice = ctx.config.LowBigPrice;
     lowSmallPrice = ctx.config.LowSmallPrice;
@@ -973,9 +977,9 @@ export function apply(ctx: Context, config: Config) {
     console.log("插件启动");
     console.log("行情刷新时间为:", time, "毫秒");
     if (ctx.config.StartUrl != "" && ctx.config.StartUrl != null)
-      updata_columba_data(ctx, ctx.config.StartUrl, true);
+      updata_columba_data(ctx, ctx.config.StartUrl, true, SteamOpen);
     else
-      updata_columba_data(ctx, "", true);
+      updata_columba_data(ctx, "", true, SteamOpen);
     if (getDataUrl == "https://www.resonance-columba.com/api/get-prices") {
       clearInterval(intervalID);
       intervalID = setInterval(get_price, 6e4);

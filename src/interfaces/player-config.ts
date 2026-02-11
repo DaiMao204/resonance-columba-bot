@@ -203,8 +203,8 @@ export var BotConfigNoReturnBargain:PlayerConfig = {
 }
 
 export var BotConfigSteam:PlayerConfig = {
-  maxLot: 1100,
-  tradeLevel: 70,
+  maxLot: 1136,
+  tradeLevel: 75,
   bargain: {
     bargainPercent: 20,
     raisePercent: 20,
@@ -235,7 +235,7 @@ export var BotConfigSteam:PlayerConfig = {
     "贡露城": 20,
     "岚心城": 20,
   },
-  roles: role_resonanceskills_steam,
+  roles: role_resonanceskills,
   onegraph: {
     maxRestock: 4,
     goAndReturn: true,
@@ -302,8 +302,8 @@ export var BotConfigSteam:PlayerConfig = {
 }
 
 export var BotConfigNoReturnBargainSteam:PlayerConfig = {
-  maxLot: 1100,
-  tradeLevel: 70,
+  maxLot: 1136,
+  tradeLevel: 75,
   bargain: {
     bargainPercent: 20,
     raisePercent: 20,
@@ -334,7 +334,7 @@ export var BotConfigNoReturnBargainSteam:PlayerConfig = {
     "贡露城": 20,
     "岚心城": 20
   },
-  roles: role_resonanceskills_steam,
+  roles: role_resonanceskills,
   onegraph: {
     maxRestock: 4,
     goAndReturn: true,

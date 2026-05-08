@@ -1,6 +1,7 @@
 import { Context, Schema, h, Bot, Dict } from 'koishi'
 import { cityList, cityItemList,cityListSteam } from './data/cicies'
 import { products_default } from './data/data'
+import { products_default_steam } from './data/data-steam'
 import { intervalTime } from './utils/time'
 import axios from 'axios';
 import { GetPricesProducts } from './interfaces/get-prices';
@@ -9,6 +10,7 @@ import { calculateOneGraphBuyCombinations,getOneGraphRecommendation,calculateGen
 import { BotConfig, BotConfigNoReturnBargain, BotConfigSteam, BotConfigNoReturnBargainSteam } from './interfaces/player-config';
 import { CITIES,CITIESSTEAM } from './data/cicies';
 import { OnegraphRecommendations,OnegraphBuyCombinationStats,OnegraphTopProfit,OnegraphTopProfitItem,OnegraphTopProfitSortedBy } from './interfaces/route-page';
+import { replaceKeysAndValues,items_chinese,items_japanese,citys_chinese,citys_japanese } from './data/translate';
 import { PRODUCTS } from './data/products';
 import { updata_columba_data } from './data/get-data';
 import { cityItems_set } from './data/cicies';
@@ -141,6 +143,26 @@ var ItemMaxPrice;
 var ItemMaxPriceSteam;
 
 var SteamTeamList = [];
+
+const defaultProductNames = new Set<string>(products_default.map((product) => product.name));
+const steamProductNames = new Set<string>(products_default_steam.map((product) => product.name));
+
+function removeProductsWithUnknownBuyCities(goodsData: GetPricesProducts, knownCities: string[], knownProductNames: Set<string>) {
+  const knownTradeCities = new Set<string>(knownCities);
+  for (const goodsName in goodsData) {
+    if (knownProductNames.has(goodsName))
+      continue;
+    const buyData = goodsData[goodsName]?.buy;
+    if (!buyData || Object.keys(buyData).length === 0) {
+      delete goodsData[goodsName];
+      continue;
+    }
+    if (Object.keys(buyData).some((cityName) => !knownTradeCities.has(cityName))) {
+      delete goodsData[goodsName];
+    }
+  }
+  return goodsData;
+}
 
 function get_reco(maxRestock,onegraphBuyCombinationsGo,onegraphBuyCombinationsRt,CITIES){
   const results: OnegraphRecommendations = {};
@@ -547,7 +569,7 @@ export async function get_price(){
     }
     ItemMaxPrice = get_max_price();
     //console.log(ItemMaxPrice)
-    responseData = convertFirebaseDataToGetPricesDataNew(data,cityList);
+    responseData = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesDataNew(data,cityList), cityList, defaultProductNames);
 
   }
 
@@ -600,7 +622,7 @@ export async function get_price(){
         }
       return;
     }
-    responseData = convertFirebaseDataToGetPricesData(data);
+    responseData = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesData(data), cityList, defaultProductNames);
   }
 
   //console.log(response)
@@ -809,6 +831,8 @@ export async function get_price_steam(){
   const response = await axios.get(getDataUrlSteam);
   var data;
   data = response.data.server_trade;
+  data = replaceKeysAndValues(data,items_japanese,items_chinese)
+  data = replaceKeysAndValues(data,citys_japanese,citys_chinese)
   tiSteam = response.data.refresh_time;
   tiIntervalSteam = response.data.interval;
   nextTiSteam = tiSteam + tiIntervalSteam;
@@ -823,7 +847,7 @@ export async function get_price_steam(){
     intervalIDSteam = setTimeout(get_price_steam, nextTiSteam * 1e3 - tiNow * 1e3 + 25e3);
     waitTiSteam = 0;
   }
-  responseDataSteam = convertFirebaseDataToGetPricesDataNew(data,cityListSteam);
+  responseDataSteam = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesDataNew(data,cityListSteam), cityListSteam, steamProductNames);
 
 
   min = 0
@@ -1123,7 +1147,8 @@ export function apply(ctx: Context, config: Config) {
                 max_price_city = cityName
               }
             }
-            city_list.push(max_price_city)
+            if (max_price_city != "")
+              city_list.push(max_price_city)
           }
           
           //console.log(city_list)
@@ -1338,7 +1363,8 @@ export function apply(ctx: Context, config: Config) {
                 max_price_city = cityName;
               }
             }
-            city_list.push(max_price_city);
+            if (max_price_city != "")
+              city_list.push(max_price_city);
           }
           var base_price_list = [];
           var base_price = 0;

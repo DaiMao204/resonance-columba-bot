@@ -326,6 +326,9 @@ function findBestCurrencyIncomeRoute(goodsData: GetPricesProducts, fromCities: s
         if (!product || product.type === "Craft") {
           continue;
         }
+        if (config.productUnlockStatus?.[goodsName] === false) {
+          continue;
+        }
         const buyData = goodsData[goodsName]?.buy?.[fromCity];
         const sellData = goodsData[goodsName]?.sell?.[toCity];
         if (!buyData?.price || !sellData?.price) {
@@ -655,6 +658,7 @@ function getWulinyuanReturnDebugLines(goodsData: GetPricesProducts) {
     missingFatigue: 0,
     missingProduct: 0,
     craftProduct: 0,
+    lockedProduct: 0,
     missingBuyPrice: 0,
     missingSellPrice: 0,
     missingBuyLot: 0,
@@ -699,6 +703,10 @@ function getWulinyuanReturnDebugLines(goodsData: GetPricesProducts) {
         stats.craftProduct++;
         continue;
       }
+      if (config.productUnlockStatus?.[goodsName] === false) {
+        stats.lockedProduct++;
+        continue;
+      }
       const buyData = goodsData[goodsName]?.buy?.[wulinyuanCityName];
       const sellData = goodsData[goodsName]?.sell?.[toCity];
       if (!buyData?.price) {
@@ -731,7 +739,7 @@ function getWulinyuanReturnDebugLines(goodsData: GetPricesProducts) {
     `回程调试：武林源买价商品${wulinyuanBuyProducts.length}`,
     `回程商品样例：${sampleProducts.join("；") || "无"}`,
     `回程逐关：城市${stats.routeChecks} 无买声望${stats.missingBuyPrestige} 无卖声望${stats.missingSellPrestige} 无疲劳${stats.missingFatigue}`,
-    `回程逐货：无商品${stats.missingProduct} 制造品${stats.craftProduct} 无买价${stats.missingBuyPrice} 无卖价${stats.missingSellPrice} 无买量${stats.missingBuyLot} 非正收入${stats.nonPositiveIncome} 可用${stats.usableCandidates}`,
+    `回程逐货：无商品${stats.missingProduct} 制造品${stats.craftProduct} 未解锁${stats.lockedProduct} 无买价${stats.missingBuyPrice} 无卖价${stats.missingSellPrice} 无买量${stats.missingBuyLot} 非正收入${stats.nonPositiveIncome} 可用${stats.usableCandidates}`,
   ];
 }
 

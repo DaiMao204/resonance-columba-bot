@@ -488,6 +488,20 @@ function getWulinyuanShortcutOutput(mode: "0" | "1" | "2") {
   return `${mixed_jiaozi_first_short_output_str}\n\n其他优先级请使用 交子0 或 交子2 查看`;
 }
 
+function getWulinyuanSellPriceLine(goodsName: string) {
+  // 商品价格查询单独补充武林源售价，不把武林源混入旧行情数据。
+  const sellData = responseDataJiaozi?.[goodsName]?.sell?.[wulinyuanCityName];
+  if (!sellData?.price) {
+    return "";
+  }
+  const trend = sellData.variation + "%";
+  const trendUpdown = sellData.trend === "up" ? "↑" : "↓";
+  const time = intervalTime(sellData.time);
+  // 武林源使用交子，按 20 交子 = 1 铁盟币换算，向上取整避免低估售价。
+  const jiaoziPrice = Math.ceil(sellData.price / 20);
+  return `${wulinyuanCityName} ${trend}${trendUpdown} 时间 ${time} 售价 ${jiaoziPrice}交子\n`;
+}
+
 function getWulinyuanReturnDebugLines(goodsData: GetPricesProducts) {
   // 调试用：确认武林源回程是否被价格、声望、疲劳或税后收入筛掉。
   const config = getWulinyuanPlayerConfig();
@@ -1901,6 +1915,11 @@ export function apply(ctx: Context, config: Config) {
             short_items_str = short_items_str + item_list[i];
             break;
           }
+          const wulinyuanSellPriceLine = getWulinyuanSellPriceLine(goodsName);
+          if (wulinyuanSellPriceLine) {
+            items_str = items_str + "\n" + wulinyuanSellPriceLine;
+            short_items_str = short_items_str + "\n\n" + wulinyuanSellPriceLine;
+          }
           break
         }
       }
@@ -2201,6 +2220,10 @@ export function apply(ctx: Context, config: Config) {
           items_str = items_str + "\n商品出售：\n";
           for (let i in item_list) {
             items_str = items_str + item_list[i] + "\n";
+          }
+          const wulinyuanSellPriceLine = getWulinyuanSellPriceLine(goodsName);
+          if (wulinyuanSellPriceLine) {
+            items_str = items_str + "\n" + wulinyuanSellPriceLine;
           }
           break;
         }

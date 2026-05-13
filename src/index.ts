@@ -36,6 +36,7 @@ export interface Config {
   ErrorItemList: Array<string>
   SteamOpen: boolean
   SteamTeamList: Array<string>
+  SpecialCurrencyMarketOpen: Dict<boolean>
   ItemSendList: Dict<Dict<ConfigItemList,string> , string>
   StartUrl: string
 }
@@ -80,6 +81,7 @@ export const Config: Schema<Config> = Schema.object({
   ErrorItemList: Schema.array(Schema.string()).default([]).description("屏蔽商品名称列表"),
   SteamOpen:Schema.boolean().default(false).description("是否开启steam服行情"),
   SteamTeamList: Schema.array(Schema.string()).default([]).description("steam服群组列表"),
+  SpecialCurrencyMarketOpen: Schema.dict(Schema.boolean()).default({ 交子: true }).description("特殊货币城市开关，键可填货币名、城市名或内部 key"),
   ItemSendList: Schema.dict(Schema.dict(ConfigItemList.description("商品名称"), Schema.string()).description("群号"), Schema.string()).description("商品行情通告表"),
   StartUrl: Schema.string().description("启动APIURL，默认留空")
 })
@@ -163,13 +165,52 @@ var ItemMaxPriceSteam;
 
 var SteamTeamList = [];
 
+var SpecialCurrencyMarketOpen: Dict<boolean> = {};
+
+const adminQQList = ["1443197830"];
+
+function isAdminSession(session) {
+  return adminQQList.includes(session?.userId);
+}
+
+function isShortTeamRestricted(session) {
+  return !isAdminSession(session) && ShortTeamList.indexOf(session.channelId) !== -1;
+}
+
 const defaultProductNames = new Set<string>(products_default.map((product) => product.name));
 const steamProductNames = new Set<string>(products_default_steam.map((product) => product.name));
-const wulinyuanCityName = "武林源";
-// 交子行情需要额外纳入武林源，旧行情仍只使用原 cityList。
-const cityListWithWulinyuan = [...cityList, wulinyuanCityName];
-// 和旧逻辑一致，预留 0-6 书组合空间；展示时从 1 书开始。
-const wulinyuanMaxRestock = 6;
+
+type MixedCurrencyMarketMode = "jiaozi-only" | "mixed-total-first" | "mixed-jiaozi-first" | "mixed-tiemeng-first";
+type MixedCurrencySortBy = "total" | "jiaozi" | "tiemeng";
+type ShortcutMode = "0" | "1" | "2";
+
+interface SpecialCurrencyMarketConfig {
+  key: string;
+  cityName: string;
+  currencyName: string;
+  baseCurrencyName: string;
+  commandKeywords: string[];
+  cityKeywords: string[];
+  maxRestock: number;
+  priceDivisorFromBase: number;
+}
+
+const specialCurrencyMarkets: SpecialCurrencyMarketConfig[] = [
+  {
+    key: "jiaozi",
+    cityName: "武林源",
+    currencyName: "交子",
+    baseCurrencyName: "铁盟币",
+    commandKeywords: ["交子", "武林"],
+    cityKeywords: ["武林源", "武林"],
+    maxRestock: 6,
+    priceDivisorFromBase: 20,
+  },
+];
+
+const jiaoziMarketConfig = specialCurrencyMarkets[0];
+const wulinyuanCityName = jiaoziMarketConfig.cityName;
+const wulinyuanMaxRestock = jiaoziMarketConfig.maxRestock;
 
 function removeProductsWithUnknownBuyCities(goodsData: GetPricesProducts, knownCities: string[], knownProductNames: Set<string>) {
   const knownTradeCities = new Set<string>(knownCities);
@@ -188,15 +229,58 @@ function removeProductsWithUnknownBuyCities(goodsData: GetPricesProducts, knownC
   return goodsData;
 }
 
-function getWulinyuanPlayerConfig() {
-  // 武林源是新增城市，默认按满声望参与税率和购买量计算。
+function specialMarketMatchesCommand(market: SpecialCurrencyMarketConfig, command: string) {
+  return market.commandKeywords.some((keyword) => command.includes(keyword));
+}
+
+function specialMarketMatchesCity(market: SpecialCurrencyMarketConfig, item: string) {
+  return market.cityKeywords.some((keyword) => keyword.includes(item) || item.includes(keyword));
+}
+
+function convertBasePriceToSpecialCurrency(price: number, market: SpecialCurrencyMarketConfig) {
+  return Math.ceil(price / market.priceDivisorFromBase);
+}
+
+function formatSpecialCurrencyPrice(price: number, market: SpecialCurrencyMarketConfig) {
+  return `${convertBasePriceToSpecialCurrency(price, market)}${market.currencyName}`;
+}
+
+function isSpecialCurrencyMarketEnabled(market: SpecialCurrencyMarketConfig) {
+  // 同时支持按内部 key、货币名或城市名开关，任一项明确为 false 都会关闭该特殊市场。
+  const switches = SpecialCurrencyMarketOpen ?? {};
+  const values = [switches[market.key], switches[market.currencyName], switches[market.cityName]];
+  return !values.some((value) => value === false);
+}
+
+function getEnabledSpecialCurrencyMarkets() {
+  return specialCurrencyMarkets.filter((market) => isSpecialCurrencyMarketEnabled(market));
+}
+
+function getSpecialCurrencyCityList() {
+  return [...cityList, ...getEnabledSpecialCurrencyMarkets().map((market) => market.cityName)];
+}
+
+function getSpecialCurrencyPlayerConfig(market: SpecialCurrencyMarketConfig) {
+  // 特殊货币城市默认按满声望参与税率和购买量计算。
   return {
     ...BotConfig,
     prestige: {
       ...BotConfig.prestige,
-      [wulinyuanCityName]: BotConfig.prestige[wulinyuanCityName] ?? 20,
+      [market.cityName]: BotConfig.prestige[market.cityName] ?? 20,
     },
   };
+}
+
+function getSpecialCurrencyNameForRoute(market: SpecialCurrencyMarketConfig, fromCity: string, toCity: string, type: "cost" | "income") {
+  // 出发地决定买入花费货币，目的地决定卖出收入货币。
+  if (type === "cost") {
+    return fromCity === market.cityName ? market.currencyName : market.baseCurrencyName;
+  }
+  return toCity === market.cityName ? market.currencyName : market.baseCurrencyName;
+}
+
+function getWulinyuanPlayerConfig() {
+  return getSpecialCurrencyPlayerConfig(jiaoziMarketConfig);
 }
 
 function getWulinyuanReturnBargainOptions() {
@@ -210,7 +294,7 @@ function getJiaoziMarketOutput(goodsData: GetPricesProducts) {
   return getWulinyuanRouteOutput(goodsData, "jiaozi-only");
 }
 
-function getMixedCurrencyMarketOutput(goodsData: GetPricesProducts, sortBy: "total" | "jiaozi" | "tiemeng") {
+function getMixedCurrencyMarketOutput(goodsData: GetPricesProducts, sortBy: MixedCurrencySortBy) {
   // 0/1/2 三种模式只改变排序目标，不改变往返计算流程。
   if (sortBy === "total") {
     return getWulinyuanRouteOutput(goodsData, "mixed-total-first");
@@ -330,7 +414,7 @@ function findBestCurrencyIncomeRoute(goodsData: GetPricesProducts, fromCities: s
   return best;
 }
 
-function findBestWulinyuanPair(goodsData: GetPricesProducts, totalRestock: number, mode: "mixed-total-first" | "mixed-jiaozi-first" | "mixed-tiemeng-first") {
+function findBestWulinyuanPair(goodsData: GetPricesProducts, totalRestock: number, mode: Extract<MixedCurrencyMarketMode, "mixed-total-first" | "mixed-jiaozi-first" | "mixed-tiemeng-first">) {
   // 严格按旧往返逻辑枚举：给定总书数 N，尝试 0+N 到 N+0 的所有分配。
   let best = null;
   for (const cityName of cityList) {
@@ -384,33 +468,41 @@ function findBestWulinyuanPair(goodsData: GetPricesProducts, totalRestock: numbe
   return best;
 }
 
-function getWulinyuanOutputTitle(mode: "jiaozi-only" | "mixed-total-first" | "mixed-jiaozi-first" | "mixed-tiemeng-first", firstOnly = false) {
+function getSpecialCurrencyOutputTitle(market: SpecialCurrencyMarketConfig, mode: MixedCurrencyMarketMode, firstOnly = false) {
   if (mode === "jiaozi-only") {
-    return firstOnly ? "交子往返跑商行情第一名——仅考虑交子" : "交子往返跑商行情——仅考虑交子";
+    return firstOnly ? `${market.currencyName}往返跑商行情第一名——仅考虑${market.currencyName}` : `${market.currencyName}往返跑商行情——仅考虑${market.currencyName}`;
   }
   if (mode === "mixed-total-first") {
-    return firstOnly ? "交子往返跑商行情第一名——总和优先" : "交子往返跑商行情——总和优先";
+    return firstOnly ? `${market.currencyName}往返跑商行情第一名——总和优先` : `${market.currencyName}往返跑商行情——总和优先`;
   }
   if (mode === "mixed-jiaozi-first") {
-    return firstOnly ? "交子往返跑商行情第一名——交子优先" : "交子往返跑商行情——交子优先";
+    return firstOnly ? `${market.currencyName}往返跑商行情第一名——${market.currencyName}优先` : `${market.currencyName}往返跑商行情——${market.currencyName}优先`;
   }
-  return firstOnly ? "交子往返跑商行情第一名——铁盟币优先" : "交子往返跑商行情——铁盟币优先";
+  return firstOnly ? `${market.currencyName}往返跑商行情第一名——${market.baseCurrencyName}优先` : `${market.currencyName}往返跑商行情——${market.baseCurrencyName}优先`;
 }
 
-function getWulinyuanDetailCommandHint(mode: "jiaozi-only" | "mixed-total-first" | "mixed-jiaozi-first" | "mixed-tiemeng-first") {
+function getWulinyuanOutputTitle(mode: MixedCurrencyMarketMode, firstOnly = false) {
+  return getSpecialCurrencyOutputTitle(jiaoziMarketConfig, mode, firstOnly);
+}
+
+function getSpecialCurrencyDetailCommandHint(market: SpecialCurrencyMarketConfig, mode: MixedCurrencyMarketMode) {
   if (mode === "jiaozi-only") {
-    return "具体排行请使用指令 详细行情 交子 查看";
+    return `具体排行请使用指令 详细行情 ${market.currencyName} 查看`;
   }
   if (mode === "mixed-total-first") {
-    return "具体排行请使用指令 详细行情 交子 0 查看";
+    return `具体排行请使用指令 详细行情 ${market.currencyName} 0 查看`;
   }
   if (mode === "mixed-jiaozi-first") {
-    return "具体排行请使用指令 详细行情 交子 1 查看";
+    return `具体排行请使用指令 详细行情 ${market.currencyName} 1 查看`;
   }
-  return "具体排行请使用指令 详细行情 交子 2 查看";
+  return `具体排行请使用指令 详细行情 ${market.currencyName} 2 查看`;
 }
 
-function getWulinyuanRouteOutput(goodsData: GetPricesProducts, mode: "jiaozi-only" | "mixed-total-first" | "mixed-jiaozi-first" | "mixed-tiemeng-first") {
+function getWulinyuanDetailCommandHint(mode: MixedCurrencyMarketMode) {
+  return getSpecialCurrencyDetailCommandHint(jiaoziMarketConfig, mode);
+}
+
+function getWulinyuanRouteOutput(goodsData: GetPricesProducts, mode: MixedCurrencyMarketMode) {
   if (!goodsData || Object.keys(goodsData).length === 0) {
     return { output: "武林源行情暂无数据", shortOutput: "武林源行情暂无数据" };
   }
@@ -427,7 +519,7 @@ function getWulinyuanRouteOutput(goodsData: GetPricesProducts, mode: "jiaozi-onl
       if (!best || jiaoziRoute.generalProfitIndex > best.primary) {
         best = { primary: jiaoziRoute.generalProfitIndex, secondary: 0, lineIndex: lines.length };
       }
-      lines.push(`${restock}书路线 交子综合参考利润 ${jiaoziRoute.generalProfitIndex} ${jiaoziRoute.restock}+0 全抬砍 ${jiaoziRoute.fromCity} 到 ${wulinyuanCityName}`);
+      lines.push(`${restock}书路线 ${jiaoziMarketConfig.currencyName}综合参考利润 ${jiaoziRoute.generalProfitIndex} ${jiaoziRoute.restock}+0 全抬砍 ${jiaoziRoute.fromCity} 到 ${wulinyuanCityName}`);
     } else {
       const pair = findBestWulinyuanPair(goodsData, restock, mode);
       if (!pair) {
@@ -436,7 +528,7 @@ function getWulinyuanRouteOutput(goodsData: GetPricesProducts, mode: "jiaozi-onl
       if (!best || pair.primary > best.primary || pair.primary === best.primary && pair.secondary > best.secondary) {
         best = { primary: pair.primary, secondary: pair.secondary, lineIndex: lines.length };
       }
-      lines.push(`${restock}书路线 总和综合参考利润 ${pair.totalGeneralProfitIndex} 交子综合参考利润 ${pair.jiaoziGeneralProfitIndex} 铁盟币综合参考利润 ${pair.tiemengGeneralProfitIndex} ${pair.jiaoziRoute.restock}+${pair.tiemengRoute.restock} 去程${pair.jiaoziRoute.bargainLabel} ${pair.returnBargainLabel} ${pair.cityName} 往返 ${wulinyuanCityName}`);
+      lines.push(`${restock}书路线 总和综合参考利润 ${pair.totalGeneralProfitIndex} ${jiaoziMarketConfig.currencyName}综合参考利润 ${pair.jiaoziGeneralProfitIndex} ${jiaoziMarketConfig.baseCurrencyName}综合参考利润 ${pair.tiemengGeneralProfitIndex} ${pair.jiaoziRoute.restock}+${pair.tiemengRoute.restock} 去程${pair.jiaoziRoute.bargainLabel} ${pair.returnBargainLabel} ${pair.cityName} 往返 ${wulinyuanCityName}`);
     }
   }
   if (lines.length === 0) {
@@ -451,7 +543,7 @@ function getWulinyuanRouteOutput(goodsData: GetPricesProducts, mode: "jiaozi-onl
 
 function getWulinyuanMarketCommandOutput(content: string, detailMode: boolean) {
   const command = toSimplified(content);
-  if (!command.includes("交子") && !command.includes("武林")) {
+  if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig) || !specialMarketMatchesCommand(jiaoziMarketConfig, command)) {
     return null;
   }
 
@@ -466,8 +558,10 @@ function getWulinyuanMarketCommandOutput(content: string, detailMode: boolean) {
     return detailMode ? mixed_tiemeng_first_output_str : mixed_tiemeng_first_short_output_str;
   }
 
-  if (command.includes("铁盟")) {
-    const tiemengFirst = command.includes("铁盟优先") || command.includes("铁盟币优先") || command.indexOf("铁盟") < command.indexOf("交子");
+  if (command.includes(jiaoziMarketConfig.baseCurrencyName.slice(0, 2))) {
+    const baseCurrencyIndex = command.indexOf(jiaoziMarketConfig.baseCurrencyName.slice(0, 2));
+    const specialCurrencyIndex = command.indexOf(jiaoziMarketConfig.currencyName);
+    const tiemengFirst = command.includes(`${jiaoziMarketConfig.baseCurrencyName.slice(0, 2)}优先`) || command.includes(`${jiaoziMarketConfig.baseCurrencyName}优先`) || baseCurrencyIndex >= 0 && (specialCurrencyIndex < 0 || baseCurrencyIndex < specialCurrencyIndex);
     if (tiemengFirst) {
       return detailMode ? mixed_tiemeng_first_output_str : mixed_tiemeng_first_short_output_str;
     }
@@ -477,29 +571,78 @@ function getWulinyuanMarketCommandOutput(content: string, detailMode: boolean) {
   return detailMode ? mixed_total_first_output_str : mixed_total_first_short_output_str;
 }
 
-function getWulinyuanShortcutOutput(mode: "0" | "1" | "2") {
+function getSpecialCurrencyShortcutOutput(market: SpecialCurrencyMarketConfig, mode: ShortcutMode) {
   // 简写入口只返回短行情，避免和旧的“当前行情”详细入口混在一起。
   if (mode === "0") {
-    return `${mixed_total_first_short_output_str}\n\n其他优先级请使用 交子 或 交子2 查看`;
+    return `${mixed_total_first_short_output_str}\n\n其他优先级请使用 ${market.currencyName} 或 ${market.currencyName}2 查看`;
   }
   if (mode === "2") {
-    return `${mixed_tiemeng_first_short_output_str}\n\n其他优先级请使用 交子 或 交子0 查看`;
+    return `${mixed_tiemeng_first_short_output_str}\n\n其他优先级请使用 ${market.currencyName} 或 ${market.currencyName}0 查看`;
   }
-  return `${mixed_jiaozi_first_short_output_str}\n\n其他优先级请使用 交子0 或 交子2 查看`;
+  return `${mixed_jiaozi_first_short_output_str}\n\n其他优先级请使用 ${market.currencyName}0 或 ${market.currencyName}2 查看`;
 }
 
-function getWulinyuanSellPriceLine(goodsName: string) {
+function getWulinyuanShortcutOutput(mode: ShortcutMode) {
+  return getSpecialCurrencyShortcutOutput(jiaoziMarketConfig, mode);
+}
+
+function getSpecialCurrencySellPriceLine(market: SpecialCurrencyMarketConfig, goodsName: string, goodsData: GetPricesProducts) {
+  if (!isSpecialCurrencyMarketEnabled(market)) {
+    return "";
+  }
   // 商品价格查询单独补充武林源售价，不把武林源混入旧行情数据。
-  const sellData = responseDataJiaozi?.[goodsName]?.sell?.[wulinyuanCityName];
+  const sellData = goodsData?.[goodsName]?.sell?.[market.cityName];
   if (!sellData?.price) {
     return "";
   }
   const trend = sellData.variation + "%";
   const trendUpdown = sellData.trend === "up" ? "↑" : "↓";
   const time = intervalTime(sellData.time);
-  // 武林源使用交子，按 20 交子 = 1 铁盟币换算，向上取整避免低估售价。
-  const jiaoziPrice = Math.ceil(sellData.price / 20);
-  return `${wulinyuanCityName} ${trend}${trendUpdown} 时间 ${time} 售价 ${jiaoziPrice}交子\n`;
+  return `${market.cityName} ${trend}${trendUpdown} 时间 ${time} 售价 ${formatSpecialCurrencyPrice(sellData.price, market)}\n`;
+}
+
+function getWulinyuanSellPriceLine(goodsName: string) {
+  return getSpecialCurrencySellPriceLine(jiaoziMarketConfig, goodsName, responseDataJiaozi);
+}
+
+function getSpecialCurrencyBuyPriceLine(market: SpecialCurrencyMarketConfig, goodsName: string, goodsData: GetPricesProducts) {
+  if (!isSpecialCurrencyMarketEnabled(market)) {
+    return "";
+  }
+  // 查询武林源出售商品时同样只读交子缓存，避免污染旧城市价格表。
+  const buyData = goodsData?.[goodsName]?.buy?.[market.cityName];
+  if (!buyData?.price) {
+    return "";
+  }
+  const trend = buyData.variation + "%";
+  const trendUpdown = buyData.trend === "up" ? "↑" : "↓";
+  const time = intervalTime(buyData.time);
+  return `${goodsName} ${trend}${trendUpdown} 时间 ${time} ${formatSpecialCurrencyPrice(buyData.price, market)}\n`;
+}
+
+function getWulinyuanBuyPriceLine(goodsName: string) {
+  return getSpecialCurrencyBuyPriceLine(jiaoziMarketConfig, goodsName, responseDataJiaozi);
+}
+
+function getSpecialCurrencyCityPriceOutput(market: SpecialCurrencyMarketConfig, item: string, goodsData: GetPricesProducts) {
+  if (!isSpecialCurrencyMarketEnabled(market)) {
+    return "";
+  }
+  // 只在明确查询武林源城市时接管城市查询，不影响旧 cityItemList。
+  if (!specialMarketMatchesCity(market, item)) {
+    return "";
+  }
+  const goodsLines = Object.keys(goodsData ?? {})
+    .map((goodsName) => getSpecialCurrencyBuyPriceLine(market, goodsName, goodsData))
+    .filter((line) => line !== "");
+  if (goodsLines.length === 0) {
+    return `查询到城市${market.cityName}\n\n暂无${market.cityName}商品价格数据。`;
+  }
+  return `查询到城市${market.cityName}\n\n${goodsLines.join("")}`;
+}
+
+function getWulinyuanCityPriceOutput(item: string) {
+  return getSpecialCurrencyCityPriceOutput(jiaoziMarketConfig, item, responseDataJiaozi);
 }
 
 function getWulinyuanReturnDebugLines(goodsData: GetPricesProducts) {
@@ -593,11 +736,11 @@ function getWulinyuanReturnDebugLines(goodsData: GetPricesProducts) {
 }
 
 function getWulinyuanRestockPeakDebugLines(goodsData: GetPricesProducts) {
-  // 调试用：扫描 1-50 书，观察综合参考利润何时到达峰值或首次下降。
+  // 调试用：扫描配置的书数上限，观察综合参考利润何时到达峰值或首次下降。
   const modes = [
     { name: "总和优先", mode: "mixed-total-first" as const },
-    { name: "交子优先", mode: "mixed-jiaozi-first" as const },
-    { name: "铁盟优先", mode: "mixed-tiemeng-first" as const },
+    { name: `${jiaoziMarketConfig.currencyName}优先`, mode: "mixed-jiaozi-first" as const },
+    { name: `${jiaoziMarketConfig.baseCurrencyName}优先`, mode: "mixed-tiemeng-first" as const },
   ];
   return modes.map(({ name, mode }) => {
     let peak = null;
@@ -626,11 +769,7 @@ function getWulinyuanRestockPeakDebugLines(goodsData: GetPricesProducts) {
 }
 
 function getCurrencyNameForRoute(fromCity: string, toCity: string, type: "cost" | "income") {
-  // 出发地决定买入花费货币，目的地决定卖出收入货币。
-  if (type === "cost") {
-    return fromCity === wulinyuanCityName ? "交子" : "铁盟币";
-  }
-  return toCity === wulinyuanCityName ? "交子" : "铁盟币";
+  return getSpecialCurrencyNameForRoute(jiaoziMarketConfig, fromCity, toCity, type);
 }
 
 function formatWulinyuanRouteDetail(route) {
@@ -664,7 +803,7 @@ function getWulinyuanBestRouteDetailDebugLines(goodsData: GetPricesProducts) {
   }
   return [
     `当前最优解详情：${best.cityName} 往返 ${wulinyuanCityName}`,
-    `净收益：交子${best.jiaoziNetProfit} 铁盟币${best.tiemengNetProfit} 总和综合参考利润${best.totalGeneralProfitIndex} ${best.returnBargainLabel}`,
+    `净收益：${jiaoziMarketConfig.currencyName}${best.jiaoziNetProfit} ${jiaoziMarketConfig.baseCurrencyName}${best.tiemengNetProfit} 总和综合参考利润${best.totalGeneralProfitIndex} ${best.returnBargainLabel}`,
     `去程：${formatWulinyuanRouteDetail(best.jiaoziRoute)}`,
     `回程：${formatWulinyuanRouteDetail(best.tiemengRoute)}`,
   ];
@@ -672,6 +811,9 @@ function getWulinyuanBestRouteDetailDebugLines(goodsData: GetPricesProducts) {
 
 function getWulinyuanMarketDebugOutput() {
   // 交子调试/交子测试入口，聚合缓存状态、筛选统计和最优解详情。
+  if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig)) {
+    return `${jiaoziMarketConfig.currencyName}行情已关闭`;
+  }
   const goodsData = responseDataJiaozi;
   if (!goodsData || Object.keys(goodsData).length === 0) {
     return [
@@ -679,8 +821,8 @@ function getWulinyuanMarketDebugOutput() {
       "当前 responseDataJiaozi 为空，说明武林源行情缓存还没有生成。",
       `短行情缓存：${jiaozi_short_output_str}`,
       `总和优先缓存：${mixed_total_first_short_output_str}`,
-      `交子优先缓存：${mixed_jiaozi_first_short_output_str}`,
-      `铁盟优先缓存：${mixed_tiemeng_first_short_output_str}`,
+      `${jiaoziMarketConfig.currencyName}优先缓存：${mixed_jiaozi_first_short_output_str}`,
+      `${jiaoziMarketConfig.baseCurrencyName}优先缓存：${mixed_tiemeng_first_short_output_str}`,
     ].join("\n");
   }
 
@@ -714,7 +856,7 @@ function getWulinyuanMarketDebugOutput() {
     .filter((item) => item.jiaozi > 0 || item.tiemeng > 0)
     .sort((a, b) => (b.jiaozi + b.tiemeng) - (a.jiaozi + a.tiemeng))
     .slice(0, 10)
-    .map((item) => `${item.cityName} 交子${item.jiaozi} 铁盟${item.tiemeng}${item.paired ? " 可往返" : ""}`);
+    .map((item) => `${item.cityName} ${jiaoziMarketConfig.currencyName}${item.jiaozi} ${jiaoziMarketConfig.baseCurrencyName}${item.tiemeng}${item.paired ? " 可往返" : ""}`);
 
   return [
     "交子行情调试",
@@ -725,15 +867,58 @@ function getWulinyuanMarketDebugOutput() {
     ...getWulinyuanReturnDebugLines(goodsData),
     ...getWulinyuanRestockPeakDebugLines(goodsData),
     ...getWulinyuanBestRouteDetailDebugLines(goodsData),
-    `1书最佳交子收入：${jiaoziBest ? `${jiaoziBest.fromCity}->${jiaoziBest.toCity} ${jiaoziBest.generalProfitIndex}` : "无"}`,
-    `1书最佳铁盟币收入：${tiemengBest ? `${tiemengBest.fromCity}->${tiemengBest.toCity} ${tiemengBest.generalProfitIndex}` : "无"}`,
+    `1书最佳${jiaoziMarketConfig.currencyName}收入：${jiaoziBest ? `${jiaoziBest.fromCity}->${jiaoziBest.toCity} ${jiaoziBest.generalProfitIndex}` : "无"}`,
+    `1书最佳${jiaoziMarketConfig.baseCurrencyName}收入：${tiemengBest ? `${tiemengBest.fromCity}->${tiemengBest.toCity} ${tiemengBest.generalProfitIndex}` : "无"}`,
     `1书可往返城市数：${pairedCities.length}`,
     topCities.length ? `候选城市：\n${topCities.join("\n")}` : "候选城市：无",
     `短行情缓存：${jiaozi_short_output_str}`,
     `总和优先缓存：${mixed_total_first_short_output_str}`,
-    `交子优先缓存：${mixed_jiaozi_first_short_output_str}`,
-    `铁盟优先缓存：${mixed_tiemeng_first_short_output_str}`,
+    `${jiaoziMarketConfig.currencyName}优先缓存：${mixed_jiaozi_first_short_output_str}`,
+    `${jiaoziMarketConfig.baseCurrencyName}优先缓存：${mixed_tiemeng_first_short_output_str}`,
   ].join("\n");
+}
+
+function registerSpecialCurrencyCommands(ctx: Context, market: SpecialCurrencyMarketConfig) {
+  if (!isSpecialCurrencyMarketEnabled(market)) {
+    return;
+  }
+  // 特殊货币指令统一注册，后续新增货币只需要扩展配置和输出缓存。
+  ctx.command(`${market.currencyName}调试`)
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanMarketDebugOutput());
+    });
+  ctx.command(`${market.currencyName}测试`)
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanMarketDebugOutput());
+    });
+  ctx.command(market.currencyName)
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("1"));
+    });
+  ctx.command(`${market.currencyName}0`)
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("0"));
+    });
+  ctx.command(`${market.currencyName}1`)
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("1"));
+    });
+  ctx.command(`${market.currencyName}2`)
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("2"));
+    });
+}
+
+function isAllowedSpecialCurrencyMessage(content: string) {
+  const command = toSimplified(content).trim();
+  return getEnabledSpecialCurrencyMarkets().some((market) =>
+    command === market.currencyName ||
+    command.includes(`${market.currencyName}调试`) ||
+    command.includes(`${market.currencyName}测试`) ||
+    command.includes(`${market.currencyName}0`) ||
+    command.includes(`${market.currencyName}1`) ||
+    command.includes(`${market.currencyName}2`)
+  );
 }
 
 function get_reco(maxRestock,onegraphBuyCombinationsGo,onegraphBuyCombinationsRt,CITIES){
@@ -1141,7 +1326,8 @@ export async function get_price(){
     }
     ItemMaxPrice = get_max_price();
     //console.log(ItemMaxPrice)
-    responseDataJiaozi = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesDataNew(data, cityListWithWulinyuan, true), cityListWithWulinyuan, defaultProductNames);
+    const specialCityList = getSpecialCurrencyCityList();
+    responseDataJiaozi = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesDataNew(data, specialCityList, true), specialCityList, defaultProductNames);
     responseData = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesDataNew(data,cityList), cityList, defaultProductNames);
 
   }
@@ -1203,7 +1389,8 @@ export async function get_price(){
         }
       return;
     }
-    responseDataJiaozi = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesData(data, cityListWithWulinyuan), cityListWithWulinyuan, defaultProductNames);
+    const specialCityList = getSpecialCurrencyCityList();
+    responseDataJiaozi = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesData(data, specialCityList), specialCityList, defaultProductNames);
     responseData = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesData(data), cityList, defaultProductNames);
   }
 
@@ -1579,6 +1766,7 @@ export async function get_price_steam(){
 
 export function apply(ctx: Context, config: Config) {
   // write your plugin here
+  SpecialCurrencyMarketOpen = config.SpecialCurrencyMarketOpen ?? {};
   ctx.on("ready", () => {
     ctx_send = ctx;
     const time = ctx.config.TimerTime * 6e4;
@@ -1596,6 +1784,7 @@ export function apply(ctx: Context, config: Config) {
       ShortTeamList = ctx.config.ShortTeamList;
     if (ctx.config.SteamTeamList.lenth != 0)
       SteamTeamList = ctx.config.SteamTeamList;
+    SpecialCurrencyMarketOpen = ctx.config.SpecialCurrencyMarketOpen ?? {};
     SteamOpen = ctx.config.SteamOpen;
     bigPrice = ctx.config.BigPrice;
     lowBigPrice = ctx.config.LowBigPrice;
@@ -1626,30 +1815,7 @@ export function apply(ctx: Context, config: Config) {
   .action(async ({ session }) => {
     session.send(h("quote", { id: session.event.message.id }) + output_str_steam);
     });
-  ctx.command("交子调试")
-  .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanMarketDebugOutput());
-    });
-  ctx.command("交子测试")
-  .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanMarketDebugOutput());
-    });
-  ctx.command("交子")
-  .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("1"));
-    });
-  ctx.command("交子0")
-  .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("0"));
-    });
-  ctx.command("交子1")
-  .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("1"));
-    });
-  ctx.command("交子2")
-  .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("2"));
-    });
+  registerSpecialCurrencyCommands(ctx, jiaoziMarketConfig);
   ctx.command("当前行情")
   .action(async ({ session }) => {
     const wulinyuanMarketOutput = getWulinyuanMarketCommandOutput(session.content, false);
@@ -1657,7 +1823,7 @@ export function apply(ctx: Context, config: Config) {
       session.send(wulinyuanMarketOutput);
       return;
     }
-    if (ShortTeamList.indexOf(session.channelId) === -1)
+    if (!isShortTeamRestricted(session))
       if (SteamTeamList.indexOf(session.channelId) !== -1)
         session.send(h("quote", { id: session.event.message.id }) + small_output_str_steam);
       else
@@ -1670,7 +1836,7 @@ export function apply(ctx: Context, config: Config) {
     });
   ctx.command("无海行情")
   .action(async ({ session }) => {
-    if (ShortTeamList.indexOf(session.channelId) === -1 || session.channelId in SteamTeamList)
+    if (!isShortTeamRestricted(session) || session.channelId in SteamTeamList)
       session.send(h("quote", { id: session.event.message.id }) + low_output_str);
     else
       session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
@@ -1682,7 +1848,7 @@ export function apply(ctx: Context, config: Config) {
       session.send(wulinyuanMarketOutput);
       return;
     }
-    if (ShortTeamList.indexOf(session.channelId) === -1)
+    if (!isShortTeamRestricted(session))
       if (SteamTeamList.indexOf(session.channelId) !== -1)
         session.send(h("quote", { id: session.event.message.id }) + small_output_str_steam);
       else
@@ -1695,7 +1861,7 @@ export function apply(ctx: Context, config: Config) {
     });
   ctx.command("無海行情")
   .action(async ({ session }) => {
-    if (ShortTeamList.indexOf(session.channelId) === -1 || session.channelId in SteamTeamList)
+    if (!isShortTeamRestricted(session) || session.channelId in SteamTeamList)
       session.send(h("quote", { id: session.event.message.id }) + low_output_str);
     else
       session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
@@ -1704,13 +1870,13 @@ export function apply(ctx: Context, config: Config) {
   .action(async ({ session }) => {
     const wulinyuanMarketOutput = getWulinyuanMarketCommandOutput(session.content, true);
     if (wulinyuanMarketOutput) {
-      if (ShortTeamList.indexOf(session.channelId) === -1)
+      if (!isShortTeamRestricted(session))
         session.send(h("quote", { id: session.event.message.id }) + wulinyuanMarketOutput);
       else
         session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
       return;
     }
-    if (ShortTeamList.indexOf(session.channelId) === -1)
+    if (!isShortTeamRestricted(session))
       if (SteamTeamList.indexOf(session.channelId) !== -1)
         session.send(h("quote", { id: session.event.message.id }) + output_str_steam);
       else
@@ -1722,13 +1888,13 @@ export function apply(ctx: Context, config: Config) {
   .action(async ({ session }) => {
     const wulinyuanMarketOutput = getWulinyuanMarketCommandOutput(session.content, true);
     if (wulinyuanMarketOutput) {
-      if (ShortTeamList.indexOf(session.channelId) === -1)
+      if (!isShortTeamRestricted(session))
         session.send(h("quote", { id: session.event.message.id }) + wulinyuanMarketOutput);
       else
         session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
       return;
     }
-    if (ShortTeamList.indexOf(session.channelId) === -1)
+    if (!isShortTeamRestricted(session))
       if (SteamTeamList.indexOf(session.channelId) !== -1)
         session.send(h("quote", { id: session.event.message.id }) + output_str_steam);
       else
@@ -1925,7 +2091,15 @@ export function apply(ctx: Context, config: Config) {
       }
 
       if (items_str == ""){
+        const wulinyuanCityPriceOutput = getWulinyuanCityPriceOutput(item);
+        if (wulinyuanCityPriceOutput) {
+          items_str = wulinyuanCityPriceOutput;
+          short_items_str = wulinyuanCityPriceOutput;
+        }
         for (let cityName in cityItemList){
+          if (items_str !== "") {
+            break;
+          }
           let nameFlag = true
           for (let str of item){
             if (cityName.indexOf(str) == -1){
@@ -1934,7 +2108,9 @@ export function apply(ctx: Context, config: Config) {
             }
           }
           if (nameFlag){
-            short_items_str = "为维护本群聊天环境不支持查询城市\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126";
+            if (!isAdminSession(session)) {
+              short_items_str = "为维护本群聊天环境不支持查询城市\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126";
+            }
             items_str = items_str + "查询到城市" + cityName + "\n\n"
             for (let goodsName in cityItemList[cityName]){
               if(!(cityName in GoodsData[cityItemList[cityName][goodsName]]['buy']))
@@ -1950,7 +2126,7 @@ export function apply(ctx: Context, config: Config) {
         if (items_str == "")
           items_str = "未查询到名为" + item + "的商品或城市。"
       }
-      if (ShortTeamList.indexOf(session.channelId) === -1)
+      if (!isShortTeamRestricted(session))
         return h("quote", { id: session.event.message.id }) + items_str;
       else
         return short_items_str;
@@ -1962,7 +2138,7 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.middleware(async (session, next) => {
     if (session.content.includes("买价") && session.content[0] == "买" || session.content.includes("買價") && session.content[0] == "買") {
-      if (ShortTeamList.indexOf(session.channelId) != -1) {
+      if (isShortTeamRestricted(session)) {
         return "为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126";
       }
       var item = session.content.slice(2);
@@ -2057,7 +2233,14 @@ export function apply(ctx: Context, config: Config) {
         }
       }
       if (items_str == "") {
+        const wulinyuanCityPriceOutput = getWulinyuanCityPriceOutput(item);
+        if (wulinyuanCityPriceOutput) {
+          items_str = wulinyuanCityPriceOutput;
+        }
         for (let cityName2 in cityItemList) {
+          if (items_str !== "") {
+            break;
+          }
           let nameFlag = true;
           for (let str of item) {
             if (cityName2.indexOf(str) == -1) {
@@ -2088,7 +2271,7 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.middleware(async (session, next) => {
     if (session.content.includes("详价") && session.content[0] == "详" || session.content.includes("詳價") && session.content[0] == "詳") {
-      if (ShortTeamList.indexOf(session.channelId) != -1) {
+      if (isShortTeamRestricted(session)) {
         return "为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126";
       }
       var GoodsData: GetPricesProducts;
@@ -2470,7 +2653,7 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.command("数据更新")
   .action(async ({ session }) => {
-    if (session.userId == "1443197830"){
+    if (isAdminSession(session)){
       session.send("正在更新数据ing......")
       errorNum = 0
       updata_columba_data(ctx)
@@ -2481,7 +2664,7 @@ export function apply(ctx: Context, config: Config) {
   })
   ctx.middleware(async (session, next) => {
     if (session.channelId == "957035373") {
-      if (session.userId == "1443197830" || session.content.includes("数据更新") || session.content.includes("有行情嗎") || session.content.includes("有行情吗") || session.content.includes("无往不利成就") || session.content.includes("交子调试") || session.content.includes("交子测试") || session.content.trim() === "交子" || session.content.includes("交子0") || session.content.includes("交子1") || session.content.includes("交子2") || session.content.includes("詳細行情") || session.content.includes("当前行情") || session.content.includes("详细行情") || session.content.includes("無海行情") || session.content.includes("當前行情") || session.content.includes("无海行情") || session.content.includes("菜单") || session.content.includes("wiki") || session.content.includes("科伦巴商会") || session.content.includes("配队攻略") || session.content.includes("乘员图鉴") || session.content.includes("装备图鉴") || session.content.includes("武装图鉴") || session.content.includes("词条图鉴") || session.content.includes("伤害公式") || session.content.includes("客运路线") || session.content.includes("雷索周报") || session.content.includes("兑换码") || session.content.includes("表情包制作") || session.content.includes("制造数据") || session.content.includes("新手攻略")) {
+      if (isAdminSession(session) || isAllowedSpecialCurrencyMessage(session.content) || session.content.includes("数据更新") || session.content.includes("有行情嗎") || session.content.includes("有行情吗") || session.content.includes("无往不利成就") || session.content.includes("詳細行情") || session.content.includes("当前行情") || session.content.includes("详细行情") || session.content.includes("無海行情") || session.content.includes("當前行情") || session.content.includes("无海行情") || session.content.includes("菜单") || session.content.includes("wiki") || session.content.includes("科伦巴商会") || session.content.includes("配队攻略") || session.content.includes("乘员图鉴") || session.content.includes("装备图鉴") || session.content.includes("武装图鉴") || session.content.includes("词条图鉴") || session.content.includes("伤害公式") || session.content.includes("客运路线") || session.content.includes("雷索周报") || session.content.includes("兑换码") || session.content.includes("表情包制作") || session.content.includes("制造数据") || session.content.includes("新手攻略")) {
         let i;
         i = i;
       } else

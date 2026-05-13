@@ -1,8 +1,25 @@
 import { fail } from "assert";
 import { CityName } from "../data/cicies";
-import { role_resonanceskills } from "../data/data"
-import { role_resonanceskills_steam } from "../data/data-steam"
+import { resonanceskills_default, role_resonanceskills } from "../data/data"
+import { resonanceskills_default_steam, role_resonanceskills_steam } from "../data/data-steam"
 
+function buildConfiguredRoles(resonanceSkills, configuredRoles: PlayerConfigRoles): PlayerConfigRoles {
+  // 以 data 中的乘员共振表为准补齐配置，避免后续新增乘员时遗漏。
+  const roles = { ...configuredRoles };
+  for (const roleName of Object.keys(resonanceSkills ?? {})) {
+    if (roles[roleName]?.resonance != null) {
+      continue;
+    }
+    const maxResonance = Math.max(...Object.keys(resonanceSkills[roleName] ?? {}).map((level) => Number(level)).filter((level) => !Number.isNaN(level)));
+    if (Number.isFinite(maxResonance)) {
+      roles[roleName] = { resonance: maxResonance };
+    }
+  }
+  return roles;
+}
+
+const defaultRoles = buildConfiguredRoles(resonanceskills_default, role_resonanceskills);
+const defaultSteamRoles = buildConfiguredRoles(resonanceskills_default_steam, role_resonanceskills_steam);
 
 export var BotConfig:PlayerConfig = {
   maxLot: 1136,
@@ -37,7 +54,7 @@ export var BotConfig:PlayerConfig = {
     "贡露城": 20,
     "岚心城": 20,
   },
-  roles: role_resonanceskills,
+  roles: defaultRoles,
   onegraph: {
     maxRestock: 4,
     goAndReturn: true,
@@ -97,6 +114,7 @@ export var BotConfig:PlayerConfig = {
     鱼子酱: true,
     玄武岩纤维: true,
     碳纤维索: true,
+    家用机器人: false,
   },
   events: {
     "红茶战争": { activated: false }
@@ -136,7 +154,7 @@ export var BotConfigNoReturnBargain:PlayerConfig = {
     "贡露城": 20,
     "岚心城": 20,
   },
-  roles: role_resonanceskills,
+  roles: defaultRoles,
   onegraph: {
     maxRestock: 4,
     goAndReturn: true,
@@ -196,6 +214,7 @@ export var BotConfigNoReturnBargain:PlayerConfig = {
     鱼子酱: true,
     玄武岩纤维: true,
     碳纤维索: true,
+    家用机器人: false,
   },
   events: {
     "红茶战争": { activated: false }
@@ -235,7 +254,7 @@ export var BotConfigSteam:PlayerConfig = {
     "贡露城": 20,
     "岚心城": 20,
   },
-  roles: role_resonanceskills,
+  roles: defaultSteamRoles,
   onegraph: {
     maxRestock: 4,
     goAndReturn: true,
@@ -295,6 +314,7 @@ export var BotConfigSteam:PlayerConfig = {
     鱼子酱: true,
     玄武岩纤维: true,
     碳纤维索: true,
+    家用机器人: false,
   },
   events: {
     "红茶战争": { activated: false }
@@ -334,7 +354,7 @@ export var BotConfigNoReturnBargainSteam:PlayerConfig = {
     "贡露城": 20,
     "岚心城": 20,
   },
-  roles: role_resonanceskills,
+  roles: defaultSteamRoles,
   onegraph: {
     maxRestock: 4,
     goAndReturn: true,
@@ -394,6 +414,7 @@ export var BotConfigNoReturnBargainSteam:PlayerConfig = {
     鱼子酱: true,
     玄武岩纤维: true,
     碳纤维索: true,
+    家用机器人: false,
   },
   events: {
     "红茶战争": { activated: false }

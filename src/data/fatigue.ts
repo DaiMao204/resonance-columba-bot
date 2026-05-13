@@ -192,7 +192,27 @@ var FATIGUES = [
 { cities: ["贡露城", "岚心城"], fatigue: 62 },
 { cities: ["贡露城", "塔图站"], fatigue: 39 },
 { cities: ["贡露城", "黑月游乐城"], fatigue: 51 },
-{ cities: ["贡露城", "维蒂林场"], fatigue: 24 }
+{ cities: ["贡露城", "维蒂林场"], fatigue: 24 },
+{ cities: ["武林源", "修格里城"], fatigue: 60 },
+{ cities: ["武林源", "铁盟哨站"], fatigue: 63 },
+{ cities: ["武林源", "七号自由港"], fatigue: 66 },
+{ cities: ["武林源", "澄明数据中心"], fatigue: 56 },
+{ cities: ["武林源", "阿妮塔战备工厂"], fatigue: 63 },
+{ cities: ["武林源", "阿妮塔能源研究所"], fatigue: 70 },
+{ cities: ["武林源", "荒原站"], fatigue: 67 },
+{ cities: ["武林源", "曼德矿场"], fatigue: 68 },
+{ cities: ["武林源", "淘金乐园"], fatigue: 73 },
+{ cities: ["武林源", "阿妮塔发射中心"], fatigue: 76 },
+{ cities: ["武林源", "海角城"], fatigue: 80 },
+{ cities: ["武林源", "云岫桥基地"], fatigue: 74 },
+{ cities: ["武林源", "汇流塔"], fatigue: 84 },
+{ cities: ["武林源", "远星大桥"], fatigue: 81 },
+{ cities: ["武林源", "栖羽站"], fatigue: 89 },
+{ cities: ["武林源", "岚心城"], fatigue: 95 },
+{ cities: ["武林源", "塔图站"], fatigue: 84 },
+{ cities: ["武林源", "黑月游乐城"], fatigue: 46 },
+{ cities: ["武林源", "维蒂林场"], fatigue: 76 },
+{ cities: ["武林源", "贡露城"], fatigue: 83 },
 ];
 
 export const findFatigue = (fromCity: string, toCity: string, playerConfigRoles: PlayerConfigRoles): number => {

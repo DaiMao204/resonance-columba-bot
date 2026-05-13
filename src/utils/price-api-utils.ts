@@ -1,4 +1,5 @@
 import { CityName } from "../data/cicies";
+import { products_default } from "../data/data";
 import { PRODUCTS } from "../data/products";
 import { cityList } from "../data/cicies";
 import {
@@ -19,7 +20,7 @@ import {
   
 } from "../interfaces/get-prices";
 
-export const convertFirebaseDataToGetPricesData = (data: LbGetPricesProducts): GetPricesProducts => {
+export const convertFirebaseDataToGetPricesData = (data: LbGetPricesProducts, cityNames = cityList): GetPricesProducts => {
   const responseData: GetPricesProducts = {};
   for (const pdtName in data) {
     const pdt = data[pdtName];
@@ -34,7 +35,7 @@ export const convertFirebaseDataToGetPricesData = (data: LbGetPricesProducts): G
           price = calculatePrice(pdtName, city as CityName, type as "b" | "s", cityData.v) ?? undefined;
         }
         //console.log(cityData)
-        typeData[cityList[+city - 1]] = {
+        typeData[cityNames[+city - 1]] = {
           trend: cityData.t === 0 ? "down" : "up",
           variation: cityData.v,
           time: cityData.ti,
@@ -60,7 +61,7 @@ export const convertFirebaseDataToGetPricesData = (data: LbGetPricesProducts): G
   return responseData;
 };
 
-export const convertFirebaseDataToGetPricesDataNew = (data: NewGetPricesProducts,cityList): GetPricesProducts => {
+export const convertFirebaseDataToGetPricesDataNew = (data: NewGetPricesProducts, cityList, fillMissingStaticPrices = false): GetPricesProducts => {
   const responseData2: GetPricesProducts = {};
   for (const pdtName in data) {
     const pdt = data[pdtName];
@@ -86,6 +87,31 @@ export const convertFirebaseDataToGetPricesDataNew = (data: NewGetPricesProducts
         pdtData2["buy"] = typeData;
       } else {
         pdtData2["sell"] = typeData;
+      }
+    }
+    if (fillMissingStaticPrices) {
+      const product = products_default.find((item) => item.name === pdtName);
+      if (product) {
+        for (const city of cityList) {
+          const buyPrice = product.buyPrices?.[city];
+          if (!pdtData2["buy"][city]?.price && typeof buyPrice === "number" && buyPrice > 0) {
+            pdtData2["buy"][city] = {
+              trend: "up",
+              variation: 100,
+              time: 0,
+              price: buyPrice,
+            };
+          }
+          const sellPrice = product.sellPrices?.[city];
+          if (!pdtData2["sell"][city]?.price && typeof sellPrice === "number" && sellPrice > 0) {
+            pdtData2["sell"][city] = {
+              trend: "up",
+              variation: 100,
+              time: 0,
+              price: sellPrice,
+            };
+          }
+        }
       }
     }
     responseData2[pdtName] = pdtData2;

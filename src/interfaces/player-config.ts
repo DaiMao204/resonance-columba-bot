@@ -134,7 +134,7 @@ export var BotConfigNoReturnBargain:PlayerConfig = {
     "海角城": 20,
     "铁山城": 20,
     "贡露城": 20,
-    "岚心城": 20
+    "岚心城": 20,
   },
   roles: role_resonanceskills,
   onegraph: {
@@ -332,7 +332,7 @@ export var BotConfigNoReturnBargainSteam:PlayerConfig = {
     "海角城": 20,
     "铁山城": 20,
     "贡露城": 20,
-    "岚心城": 20
+    "岚心城": 20,
   },
   roles: role_resonanceskills,
   onegraph: {

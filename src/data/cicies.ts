@@ -21,7 +21,7 @@ export const cityList = [
     "塔图站",
     "黑月游乐城",
     "贡露城",
-    "维蒂林场"
+    "维蒂林场",
   ];
   
 export const cityListSteam = [

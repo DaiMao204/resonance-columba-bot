@@ -897,7 +897,7 @@ export var resonanceskills_default_steam = {
             },
             taxCut: {
                 city: {
-                    阿妮塔发射中心: 19.995
+                    阿妮塔发射中心: -0.005
                 }
             }
         },
@@ -909,7 +909,7 @@ export var resonanceskills_default_steam = {
             },
             taxCut: {
                 city: {
-                    阿妮塔发射中心: 19.995
+                    阿妮塔发射中心: -0.005
                 }
             }
         }

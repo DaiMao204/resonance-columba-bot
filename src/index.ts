@@ -168,8 +168,8 @@ const steamProductNames = new Set<string>(products_default_steam.map((product) =
 const wulinyuanCityName = "武林源";
 // 交子行情需要额外纳入武林源，旧行情仍只使用原 cityList。
 const cityListWithWulinyuan = [...cityList, wulinyuanCityName];
-// 和旧逻辑一致，预留 0-50 书组合空间；展示时从 1 书开始。
-const wulinyuanMaxRestock = 50;
+// 和旧逻辑一致，预留 0-6 书组合空间；展示时从 1 书开始。
+const wulinyuanMaxRestock = 6;
 
 function removeProductsWithUnknownBuyCities(goodsData: GetPricesProducts, knownCities: string[], knownProductNames: Set<string>) {
   const knownTradeCities = new Set<string>(knownCities);
@@ -477,6 +477,17 @@ function getWulinyuanMarketCommandOutput(content: string, detailMode: boolean) {
   return detailMode ? mixed_total_first_output_str : mixed_total_first_short_output_str;
 }
 
+function getWulinyuanShortcutOutput(mode: "0" | "1" | "2") {
+  // 简写入口只返回短行情，避免和旧的“当前行情”详细入口混在一起。
+  if (mode === "0") {
+    return `${mixed_total_first_short_output_str}\n\n其他优先级请使用 交子 或 交子2 查看`;
+  }
+  if (mode === "2") {
+    return `${mixed_tiemeng_first_short_output_str}\n\n其他优先级请使用 交子 或 交子0 查看`;
+  }
+  return `${mixed_jiaozi_first_short_output_str}\n\n其他优先级请使用 交子0 或 交子2 查看`;
+}
+
 function getWulinyuanReturnDebugLines(goodsData: GetPricesProducts) {
   // 调试用：确认武林源回程是否被价格、声望、疲劳或税后收入筛掉。
   const config = getWulinyuanPlayerConfig();
@@ -595,7 +606,7 @@ function getWulinyuanRestockPeakDebugLines(goodsData: GetPricesProducts) {
     if (!peak) {
       return `${name}转折：无可用路线`;
     }
-    const dropText = firstDrop ? `，首次下降 ${firstDrop.prevRestock}书${firstDrop.prevValue}->${firstDrop.restock}书${firstDrop.value}` : "，50书内未下降";
+    const dropText = firstDrop ? `，首次下降 ${firstDrop.prevRestock}书${firstDrop.prevValue}->${firstDrop.restock}书${firstDrop.value}` : `，${wulinyuanMaxRestock}书内未下降`;
     return `${name}峰值：${peak.restock}书 ${peak.value} ${peak.pair.jiaoziRoute.restock}+${peak.pair.tiemengRoute.restock} ${peak.pair.cityName}${dropText}`;
   });
 }
@@ -1609,6 +1620,22 @@ export function apply(ctx: Context, config: Config) {
   .action(async ({ session }) => {
     session.send(h("quote", { id: session.event.message.id }) + getWulinyuanMarketDebugOutput());
     });
+  ctx.command("交子")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("1"));
+    });
+  ctx.command("交子0")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("0"));
+    });
+  ctx.command("交子1")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("1"));
+    });
+  ctx.command("交子2")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("2"));
+    });
   ctx.command("当前行情")
   .action(async ({ session }) => {
     const wulinyuanMarketOutput = getWulinyuanMarketCommandOutput(session.content, false);
@@ -2431,7 +2458,7 @@ export function apply(ctx: Context, config: Config) {
   })
   ctx.middleware(async (session, next) => {
     if (session.channelId == "957035373") {
-      if (session.userId == "1443197830" || session.content.includes("数据更新") || session.content.includes("有行情嗎") || session.content.includes("有行情吗") || session.content.includes("无往不利成就") || session.content.includes("交子调试") || session.content.includes("交子测试") || session.content.includes("詳細行情") || session.content.includes("当前行情") || session.content.includes("详细行情") || session.content.includes("無海行情") || session.content.includes("當前行情") || session.content.includes("无海行情") || session.content.includes("菜单") || session.content.includes("wiki") || session.content.includes("科伦巴商会") || session.content.includes("配队攻略") || session.content.includes("乘员图鉴") || session.content.includes("装备图鉴") || session.content.includes("武装图鉴") || session.content.includes("词条图鉴") || session.content.includes("伤害公式") || session.content.includes("客运路线") || session.content.includes("雷索周报") || session.content.includes("兑换码") || session.content.includes("表情包制作") || session.content.includes("制造数据") || session.content.includes("新手攻略")) {
+      if (session.userId == "1443197830" || session.content.includes("数据更新") || session.content.includes("有行情嗎") || session.content.includes("有行情吗") || session.content.includes("无往不利成就") || session.content.includes("交子调试") || session.content.includes("交子测试") || session.content.trim() === "交子" || session.content.includes("交子0") || session.content.includes("交子1") || session.content.includes("交子2") || session.content.includes("詳細行情") || session.content.includes("当前行情") || session.content.includes("详细行情") || session.content.includes("無海行情") || session.content.includes("當前行情") || session.content.includes("无海行情") || session.content.includes("菜单") || session.content.includes("wiki") || session.content.includes("科伦巴商会") || session.content.includes("配队攻略") || session.content.includes("乘员图鉴") || session.content.includes("装备图鉴") || session.content.includes("武装图鉴") || session.content.includes("词条图鉴") || session.content.includes("伤害公式") || session.content.includes("客运路线") || session.content.includes("雷索周报") || session.content.includes("兑换码") || session.content.includes("表情包制作") || session.content.includes("制造数据") || session.content.includes("新手攻略")) {
         let i;
         i = i;
       } else

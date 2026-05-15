@@ -120,6 +120,10 @@ var mixed_tiemeng_first_output_str = "跨币行情暂无数据";
 
 var mixed_tiemeng_first_short_output_str = "跨币行情暂无数据";
 
+var xiuwu_output_str = "修武行情暂无数据";
+
+var xiuwu_short_output_str = "修武行情暂无数据";
+
 
 
 export var responseData: GetPricesProducts
@@ -211,6 +215,8 @@ const specialCurrencyMarkets: SpecialCurrencyMarketConfig[] = [
 const jiaoziMarketConfig = specialCurrencyMarkets[0];
 const wulinyuanCityName = jiaoziMarketConfig.cityName;
 const wulinyuanMaxRestock = jiaoziMarketConfig.maxRestock;
+const xiuwuCityName = "修格里城";
+const xiuwuCommandName = "修武";
 
 function removeProductsWithUnknownBuyCities(goodsData: GetPricesProducts, knownCities: string[], knownProductNames: Set<string>) {
   const knownTradeCities = new Set<string>(knownCities);
@@ -417,10 +423,10 @@ function findBestCurrencyIncomeRoute(goodsData: GetPricesProducts, fromCities: s
   return best;
 }
 
-function findBestWulinyuanPair(goodsData: GetPricesProducts, totalRestock: number, mode: Extract<MixedCurrencyMarketMode, "mixed-total-first" | "mixed-jiaozi-first" | "mixed-tiemeng-first">) {
+function findBestWulinyuanPair(goodsData: GetPricesProducts, totalRestock: number, mode: Extract<MixedCurrencyMarketMode, "mixed-total-first" | "mixed-jiaozi-first" | "mixed-tiemeng-first">, candidateCities = cityList) {
   // 严格按旧往返逻辑枚举：给定总书数 N，尝试 0+N 到 N+0 的所有分配。
   let best = null;
-  for (const cityName of cityList) {
+  for (const cityName of candidateCities) {
     for (let jiaoziRestock = 0; jiaoziRestock <= totalRestock; jiaoziRestock++) {
       const tiemengRestock = totalRestock - jiaoziRestock;
       const jiaoziRoute = findBestCurrencyIncomeRoute(goodsData, [cityName], [wulinyuanCityName], jiaoziRestock);
@@ -505,6 +511,10 @@ function getWulinyuanDetailCommandHint(mode: MixedCurrencyMarketMode) {
   return getSpecialCurrencyDetailCommandHint(jiaoziMarketConfig, mode);
 }
 
+function getXiuwuDetailCommandHint() {
+  return `具体排行请使用指令 详细行情 ${xiuwuCommandName} 查看`;
+}
+
 function formatWulinyuanPairBargainLabel(pair) {
   // 去程和回程都抬砍时沿用旧行情的简写，避免输出变得啰嗦。
   if (pair?.jiaoziRoute?.bargainLabel === "抬砍" && pair?.returnBargainLabel === "回程抬砍") {
@@ -513,17 +523,19 @@ function formatWulinyuanPairBargainLabel(pair) {
   return `去程${pair.jiaoziRoute.bargainLabel} ${pair.returnBargainLabel}`;
 }
 
-function getWulinyuanRouteOutput(goodsData: GetPricesProducts, mode: MixedCurrencyMarketMode) {
+function getWulinyuanRouteOutput(goodsData: GetPricesProducts, mode: MixedCurrencyMarketMode, options: { candidateCities?: string[], titlePrefix?: string, shortTitle?: string, detailHint?: string, emptyText?: string } = {}) {
   if (!goodsData || Object.keys(goodsData).length === 0) {
-    return { output: "武林源行情暂无数据", shortOutput: "武林源行情暂无数据" };
+    const emptyText = options.emptyText ?? "武林源行情暂无数据";
+    return { output: emptyText, shortOutput: emptyText };
   }
   const config = getWulinyuanPlayerConfig();
+  const candidateCities = options.candidateCities ?? cityList;
   const lines = [];
   let best = null;
   for (let restock = 1; restock <= wulinyuanMaxRestock; restock++) {
     if (mode === "jiaozi-only") {
       // 仅交子模式只保留作调试对照，正式入口使用三种往返模式。
-      const jiaoziRoute = findBestCurrencyIncomeRoute(goodsData, cityList, [wulinyuanCityName], restock);
+      const jiaoziRoute = findBestCurrencyIncomeRoute(goodsData, candidateCities, [wulinyuanCityName], restock);
       if (!jiaoziRoute) {
         continue;
       }
@@ -532,7 +544,7 @@ function getWulinyuanRouteOutput(goodsData: GetPricesProducts, mode: MixedCurren
       }
       lines.push(`${restock}书路线 ${jiaoziMarketConfig.currencyName}综合参考利润 ${jiaoziRoute.generalProfitIndex} ${jiaoziRoute.restock}+0 全抬砍 ${jiaoziRoute.fromCity} 到 ${wulinyuanCityName}`);
     } else {
-      const pair = findBestWulinyuanPair(goodsData, restock, mode);
+      const pair = findBestWulinyuanPair(goodsData, restock, mode, candidateCities);
       if (!pair) {
         continue;
       }
@@ -543,13 +555,36 @@ function getWulinyuanRouteOutput(goodsData: GetPricesProducts, mode: MixedCurren
     }
   }
   if (lines.length === 0) {
-    return { output: "武林源行情暂无可用路线", shortOutput: "武林源行情暂无可用路线" };
+    const emptyText = options.emptyText ?? "武林源行情暂无可用路线";
+    return { output: emptyText, shortOutput: emptyText };
   }
   const topLine = lines[best?.lineIndex ?? 0];
+  const title = options.titlePrefix ?? getWulinyuanOutputTitle(mode);
+  const shortTitle = options.shortTitle ?? getWulinyuanOutputTitle(mode, true);
+  const detailHint = options.detailHint ?? getWulinyuanDetailCommandHint(mode);
   return {
-    output: `${getWulinyuanOutputTitle(mode)} 满抬砍 满声望 满共振 1136货仓\n` + lines.join("\n"),
-    shortOutput: `${getWulinyuanOutputTitle(mode, true)}\n\n${topLine}\n\n${getWulinyuanDetailCommandHint(mode)}`,
+    output: `${title} 满抬砍 满声望 满共振 1136货仓\n` + lines.join("\n"),
+    shortOutput: `${shortTitle}\n\n${topLine}\n\n${detailHint}`,
   };
+}
+
+function getXiuwuRouteOutput(goodsData: GetPricesProducts) {
+  // 修武固定只看修格里城和武林源之间的往返，其余计算公式沿用交子总和优先逻辑。
+  return getWulinyuanRouteOutput(goodsData, "mixed-total-first", {
+    candidateCities: [xiuwuCityName],
+    titlePrefix: `${xiuwuCommandName}往返跑商行情——总和优先`,
+    shortTitle: `${xiuwuCommandName}往返跑商行情第一名——总和优先`,
+    detailHint: getXiuwuDetailCommandHint(),
+    emptyText: `${xiuwuCommandName}行情暂无可用路线`,
+  });
+}
+
+function getXiuwuMarketCommandOutput(content: string, detailMode: boolean) {
+  const command = toSimplified(content);
+  if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig) || !command.includes(xiuwuCommandName)) {
+    return null;
+  }
+  return detailMode ? xiuwu_output_str : xiuwu_short_output_str;
 }
 
 function getWulinyuanMarketCommandOutput(content: string, detailMode: boolean) {
@@ -964,6 +999,9 @@ function registerSpecialCurrencyCommands(ctx: Context, market: SpecialCurrencyMa
 
 function isAllowedSpecialCurrencyMessage(content: string) {
   const command = toSimplified(content).trim();
+  if (command === xiuwuCommandName || command.includes(`${xiuwuCommandName}`)) {
+    return true;
+  }
   return getEnabledSpecialCurrencyMarkets().some((market) =>
     command === market.currencyName ||
     command.includes(`${market.currencyName}调试`) ||
@@ -1486,6 +1524,9 @@ export async function get_price(){
   const mixedTiemengFirstOutput = getMixedCurrencyMarketOutput(responseDataJiaozi, "tiemeng");
   mixed_tiemeng_first_output_str = mixedTiemengFirstOutput.output;
   mixed_tiemeng_first_short_output_str = mixedTiemengFirstOutput.shortOutput;
+  const xiuwuOutput = getXiuwuRouteOutput(responseDataJiaozi);
+  xiuwu_output_str = xiuwuOutput.output;
+  xiuwu_short_output_str = xiuwuOutput.shortOutput;
   for (let qqTeam in ItemSendList) {
     for (let Item in ItemSendList[qqTeam]) {
       if (ItemSendList[qqTeam][Item]["type"] == "buy") {
@@ -1869,6 +1910,10 @@ export function apply(ctx: Context, config: Config) {
     session.send(h("quote", { id: session.event.message.id }) + output_str_steam);
     });
   registerSpecialCurrencyCommands(ctx, jiaoziMarketConfig);
+  ctx.command("修武")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + xiuwu_short_output_str);
+    });
   ctx.command("当前行情")
   .action(async ({ session }) => {
     const wulinyuanMarketOutput = getWulinyuanMarketCommandOutput(session.content, false);
@@ -1921,6 +1966,14 @@ export function apply(ctx: Context, config: Config) {
     });
   ctx.command("详细行情")
   .action(async ({ session }) => {
+    const xiuwuMarketOutput = getXiuwuMarketCommandOutput(session.content, true);
+    if (xiuwuMarketOutput) {
+      if (!isShortTeamRestricted(session))
+        session.send(h("quote", { id: session.event.message.id }) + xiuwuMarketOutput);
+      else
+        session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群 957035373\n行情通知群 756406126");
+      return;
+    }
     const wulinyuanMarketOutput = getWulinyuanMarketCommandOutput(session.content, true);
     if (wulinyuanMarketOutput) {
       if (!isShortTeamRestricted(session))
@@ -1939,6 +1992,14 @@ export function apply(ctx: Context, config: Config) {
   });
   ctx.command("詳細行情")
   .action(async ({ session }) => {
+    const xiuwuMarketOutput = getXiuwuMarketCommandOutput(session.content, true);
+    if (xiuwuMarketOutput) {
+      if (!isShortTeamRestricted(session))
+        session.send(h("quote", { id: session.event.message.id }) + xiuwuMarketOutput);
+      else
+        session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群 957035373\n行情通知群 756406126");
+      return;
+    }
     const wulinyuanMarketOutput = getWulinyuanMarketCommandOutput(session.content, true);
     if (wulinyuanMarketOutput) {
       if (!isShortTeamRestricted(session))

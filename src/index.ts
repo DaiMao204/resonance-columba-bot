@@ -124,6 +124,14 @@ var xiuwu_output_str = "修武行情暂无数据";
 
 var xiuwu_short_output_str = "修武行情暂无数据";
 
+var xiuwu_total_output_str = "修武行情暂无数据";
+
+var xiuwu_total_short_output_str = "修武行情暂无数据";
+
+var xiuwu_tiemeng_output_str = "修武行情暂无数据";
+
+var xiuwu_tiemeng_short_output_str = "修武行情暂无数据";
+
 
 
 export var responseData: GetPricesProducts
@@ -511,8 +519,14 @@ function getWulinyuanDetailCommandHint(mode: MixedCurrencyMarketMode) {
   return getSpecialCurrencyDetailCommandHint(jiaoziMarketConfig, mode);
 }
 
-function getXiuwuDetailCommandHint() {
-  return `具体排行请使用指令 详细行情 ${xiuwuCommandName} 查看`;
+function getXiuwuDetailCommandHint(mode: MixedCurrencyMarketMode) {
+  if (mode === "mixed-total-first") {
+    return `具体排行请使用指令 详细行情 ${xiuwuCommandName}0 查看`;
+  }
+  if (mode === "mixed-tiemeng-first") {
+    return `具体排行请使用指令 详细行情 ${xiuwuCommandName}2 查看`;
+  }
+  return `具体排行请使用指令 详细行情 ${xiuwuCommandName}1 查看`;
 }
 
 function formatWulinyuanPairBargainLabel(pair) {
@@ -568,13 +582,14 @@ function getWulinyuanRouteOutput(goodsData: GetPricesProducts, mode: MixedCurren
   };
 }
 
-function getXiuwuRouteOutput(goodsData: GetPricesProducts) {
-  // 修武固定只看修格里城和武林源之间的往返，其余计算公式沿用交子总和优先逻辑。
-  return getWulinyuanRouteOutput(goodsData, "mixed-total-first", {
+function getXiuwuRouteOutput(goodsData: GetPricesProducts, mode: Extract<MixedCurrencyMarketMode, "mixed-total-first" | "mixed-jiaozi-first" | "mixed-tiemeng-first">) {
+  // 修武固定只看修格里城和武林源之间的往返，其余计算公式沿用交子行情逻辑。
+  const modeLabel = mode === "mixed-total-first" ? "总和优先" : mode === "mixed-tiemeng-first" ? `${jiaoziMarketConfig.baseCurrencyName}优先` : `${jiaoziMarketConfig.currencyName}优先`;
+  return getWulinyuanRouteOutput(goodsData, mode, {
     candidateCities: [xiuwuCityName],
-    titlePrefix: `${xiuwuCommandName}往返跑商行情——总和优先`,
-    shortTitle: `${xiuwuCommandName}往返跑商行情第一名——总和优先`,
-    detailHint: getXiuwuDetailCommandHint(),
+    titlePrefix: `${xiuwuCommandName}往返跑商行情——${modeLabel}`,
+    shortTitle: `${xiuwuCommandName}往返跑商行情第一名——${modeLabel}`,
+    detailHint: getXiuwuDetailCommandHint(mode),
     emptyText: `${xiuwuCommandName}行情暂无可用路线`,
   });
 }
@@ -584,6 +599,13 @@ function getXiuwuMarketCommandOutput(content: string, detailMode: boolean) {
   if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig) || !command.includes(xiuwuCommandName)) {
     return null;
   }
+  if (command.includes(`${xiuwuCommandName}0`) || command.includes(`${xiuwuCommandName} 0`)) {
+    return detailMode ? xiuwu_total_output_str : xiuwu_total_short_output_str;
+  }
+  if (command.includes(`${xiuwuCommandName}2`) || command.includes(`${xiuwuCommandName} 2`)) {
+    return detailMode ? xiuwu_tiemeng_output_str : xiuwu_tiemeng_short_output_str;
+  }
+  // 修武和修武1默认按交子优先，和交子简写入口保持一致。
   return detailMode ? xiuwu_output_str : xiuwu_short_output_str;
 }
 
@@ -1524,9 +1546,15 @@ export async function get_price(){
   const mixedTiemengFirstOutput = getMixedCurrencyMarketOutput(responseDataJiaozi, "tiemeng");
   mixed_tiemeng_first_output_str = mixedTiemengFirstOutput.output;
   mixed_tiemeng_first_short_output_str = mixedTiemengFirstOutput.shortOutput;
-  const xiuwuOutput = getXiuwuRouteOutput(responseDataJiaozi);
+  const xiuwuTotalOutput = getXiuwuRouteOutput(responseDataJiaozi, "mixed-total-first");
+  xiuwu_total_output_str = xiuwuTotalOutput.output;
+  xiuwu_total_short_output_str = xiuwuTotalOutput.shortOutput;
+  const xiuwuOutput = getXiuwuRouteOutput(responseDataJiaozi, "mixed-jiaozi-first");
   xiuwu_output_str = xiuwuOutput.output;
   xiuwu_short_output_str = xiuwuOutput.shortOutput;
+  const xiuwuTiemengOutput = getXiuwuRouteOutput(responseDataJiaozi, "mixed-tiemeng-first");
+  xiuwu_tiemeng_output_str = xiuwuTiemengOutput.output;
+  xiuwu_tiemeng_short_output_str = xiuwuTiemengOutput.shortOutput;
   for (let qqTeam in ItemSendList) {
     for (let Item in ItemSendList[qqTeam]) {
       if (ItemSendList[qqTeam][Item]["type"] == "buy") {
@@ -1913,6 +1941,18 @@ export function apply(ctx: Context, config: Config) {
   ctx.command("修武")
   .action(async ({ session }) => {
     session.send(h("quote", { id: session.event.message.id }) + xiuwu_short_output_str);
+    });
+  ctx.command("修武0")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + xiuwu_total_short_output_str);
+    });
+  ctx.command("修武1")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + xiuwu_short_output_str);
+    });
+  ctx.command("修武2")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + xiuwu_tiemeng_short_output_str);
     });
   ctx.command("当前行情")
   .action(async ({ session }) => {

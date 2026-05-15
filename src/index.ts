@@ -505,6 +505,14 @@ function getWulinyuanDetailCommandHint(mode: MixedCurrencyMarketMode) {
   return getSpecialCurrencyDetailCommandHint(jiaoziMarketConfig, mode);
 }
 
+function formatWulinyuanPairBargainLabel(pair) {
+  // 去程和回程都抬砍时沿用旧行情的简写，避免输出变得啰嗦。
+  if (pair?.jiaoziRoute?.bargainLabel === "抬砍" && pair?.returnBargainLabel === "回程抬砍") {
+    return "全抬砍";
+  }
+  return `去程${pair.jiaoziRoute.bargainLabel} ${pair.returnBargainLabel}`;
+}
+
 function getWulinyuanRouteOutput(goodsData: GetPricesProducts, mode: MixedCurrencyMarketMode) {
   if (!goodsData || Object.keys(goodsData).length === 0) {
     return { output: "武林源行情暂无数据", shortOutput: "武林源行情暂无数据" };
@@ -531,7 +539,7 @@ function getWulinyuanRouteOutput(goodsData: GetPricesProducts, mode: MixedCurren
       if (!best || pair.primary > best.primary || pair.primary === best.primary && pair.secondary > best.secondary) {
         best = { primary: pair.primary, secondary: pair.secondary, lineIndex: lines.length };
       }
-      lines.push(`${restock}书路线 总和综合参考利润 ${pair.totalGeneralProfitIndex} ${jiaoziMarketConfig.currencyName}综合参考利润 ${pair.jiaoziGeneralProfitIndex} ${jiaoziMarketConfig.baseCurrencyName}综合参考利润 ${pair.tiemengGeneralProfitIndex} ${pair.jiaoziRoute.restock}+${pair.tiemengRoute.restock} 去程${pair.jiaoziRoute.bargainLabel} ${pair.returnBargainLabel} ${pair.cityName} 往返 ${wulinyuanCityName}`);
+      lines.push(`${restock}书路线 总和综合参考利润 ${pair.totalGeneralProfitIndex} ${jiaoziMarketConfig.currencyName}综合参考利润 ${pair.jiaoziGeneralProfitIndex} ${jiaoziMarketConfig.baseCurrencyName}综合参考利润 ${pair.tiemengGeneralProfitIndex} ${pair.jiaoziRoute.restock}+${pair.tiemengRoute.restock} ${formatWulinyuanPairBargainLabel(pair)} ${pair.cityName} 往返 ${wulinyuanCityName}`);
     }
   }
   if (lines.length === 0) {
@@ -811,7 +819,7 @@ function getWulinyuanBestRouteDetailDebugLines(goodsData: GetPricesProducts) {
   }
   return [
     `当前最优解详情：${best.cityName} 往返 ${wulinyuanCityName}`,
-    `净收益：${jiaoziMarketConfig.currencyName}${best.jiaoziNetProfit} ${jiaoziMarketConfig.baseCurrencyName}${best.tiemengNetProfit} 总和综合参考利润${best.totalGeneralProfitIndex} ${best.returnBargainLabel}`,
+    `净收益：${jiaoziMarketConfig.currencyName}${best.jiaoziNetProfit} ${jiaoziMarketConfig.baseCurrencyName}${best.tiemengNetProfit} 总和综合参考利润${best.totalGeneralProfitIndex} ${formatWulinyuanPairBargainLabel(best)}`,
     `去程：${formatWulinyuanRouteDetail(best.jiaoziRoute)}`,
     `回程：${formatWulinyuanRouteDetail(best.tiemengRoute)}`,
   ];
@@ -886,6 +894,43 @@ function getWulinyuanMarketDebugOutput() {
   ].join("\n");
 }
 
+function getWulinyuanMarketDebugOutputParts() {
+  // 分段发送调试信息，避免单条消息过长，也方便逐段查看候选和缓存。
+  const output = getWulinyuanMarketDebugOutput();
+  if (!output.includes("候选城市：") || !output.includes("短行情缓存：")) {
+    return [output];
+  }
+  const [beforeCandidates, afterCandidatesMark] = output.split("候选城市：\n");
+  const [candidateText, cacheText] = afterCandidatesMark.split("\n短行情缓存：");
+  const beforeLines = beforeCandidates.trimEnd().split("\n");
+  const bestRouteIndex = beforeLines.findIndex((line) => line.startsWith("当前最优解详情："));
+  const bestIncomeIndex = beforeLines.findIndex((line) => line.startsWith("1书最佳"));
+  const firstPart = bestRouteIndex === -1 ? beforeLines : beforeLines.slice(0, bestRouteIndex);
+  const secondPart = bestRouteIndex === -1 ? [] : beforeLines.slice(bestRouteIndex, bestIncomeIndex === -1 ? beforeLines.length : bestIncomeIndex);
+  const thirdPrefix = bestIncomeIndex === -1 ? [] : beforeLines.slice(bestIncomeIndex);
+  return [
+    firstPart.join("\n"),
+    secondPart.join("\n"),
+    [...thirdPrefix, `候选城市：\n${candidateText}`].join("\n"),
+    `短行情缓存：${cacheText}`,
+  ].filter((part) => part.trim() !== "");
+}
+
+function waitDebugOutputDelay(ms = 600) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function sendWulinyuanMarketDebugOutput(session) {
+  const parts = getWulinyuanMarketDebugOutputParts();
+  for (let i = 0; i < parts.length; i++) {
+    const prefix = i === 0 ? h("quote", { id: session.event.message.id }) : "";
+    await session.send(prefix + parts[i]);
+    if (i < parts.length - 1) {
+      await waitDebugOutputDelay();
+    }
+  }
+}
+
 function registerSpecialCurrencyCommands(ctx: Context, market: SpecialCurrencyMarketConfig) {
   if (!isSpecialCurrencyMarketEnabled(market)) {
     return;
@@ -893,11 +938,11 @@ function registerSpecialCurrencyCommands(ctx: Context, market: SpecialCurrencyMa
   // 特殊货币指令统一注册，后续新增货币只需要扩展配置和输出缓存。
   ctx.command(`${market.currencyName}调试`)
   .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanMarketDebugOutput());
+    await sendWulinyuanMarketDebugOutput(session);
     });
   ctx.command(`${market.currencyName}测试`)
   .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanMarketDebugOutput());
+    await sendWulinyuanMarketDebugOutput(session);
     });
   ctx.command(market.currencyName)
   .action(async ({ session }) => {

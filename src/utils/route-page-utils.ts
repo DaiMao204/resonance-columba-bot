@@ -66,8 +66,8 @@ export const calculateExchanges = (
       continue;
     }
 
-    // get resonance skill tax cut percent of this city
-    const resonanceSkillTaxCutPercent = getResonanceSkillTaxCutPercent(playerConfig.roles, fromCity);
+    // 买入税率使用出发城市的成员共振减税。
+    const buyResonanceSkillTaxCutPercent = getResonanceSkillTaxCutPercent(playerConfig.roles, fromCity);
 
     const buys: Buy[] = availableProducts
       // group routes by fromCity and toCity
@@ -96,8 +96,9 @@ export const calculateExchanges = (
         // sum all buy more percent
         const totalBuyMorePercent = resonanceSkillBuyMorePercent + prestigeBuyMorePercent + eventBuyMorePercent;
 
-        // apply buy more percent to buy lot
+        // 先应用百分比加购，再追加固定数量加购。
         buyLot = Math.round((buyLot * (100 + totalBuyMorePercent)) / 100);
+        buyLot += getResonanceSkillBuyMoreFlatAmount(playerConfig.roles, product);
 
         // calculate current buy price
         // skip any product that has missing data
@@ -138,7 +139,7 @@ export const calculateExchanges = (
         const eventTaxVariation = getGameEventTaxVariation(product, fromCity, playerConfig.events);
 
         // sum all tax variation
-        tax += eventTaxVariation + resonanceSkillTaxCutPercent;
+        tax += eventTaxVariation + buyResonanceSkillTaxCutPercent;
 
         // don't apply tax to buy price yet, tax should be deducted from profit later
 
@@ -166,6 +167,9 @@ export const calculateExchanges = (
         );
         continue;
       }
+
+      // 卖出税率使用目的城市的成员共振减税，不能沿用出发城市。
+      const sellResonanceSkillTaxCutPercent = getResonanceSkillTaxCutPercent(playerConfig.roles, toCity);
 
       const oneRouteExchanges: Exchange[] = buys.flatMap((buy) => {
         const currentPriceObject = prices[buy.product]?.["sell"]?.[toCity];
@@ -205,13 +209,13 @@ export const calculateExchanges = (
         let sellTaxRate = sellPrestige.specialTax[toCityMaster] ?? sellPrestige.generalTax;
 
         // sum all tax variation
-        sellTaxRate += resonanceSkillTaxCutPercent;
+        sellTaxRate += sellResonanceSkillTaxCutPercent;
 
         // deduct sell tax, it applies to (sell price - buy price before buy tax)
         singleProfit -= singleProfit * sellTaxRate;
 
         // deduct buy tax from profit
-        singleProfit -= buy.buyPrice * (buy.buyTaxRate + resonanceSkillTaxCutPercent);
+        singleProfit -= buy.buyPrice * buy.buyTaxRate;
 
         // lot profit
         const lotProfit = Math.round(singleProfit * buy.buyLot);
@@ -418,8 +422,8 @@ export const calculateOneGraphBuyCombinations = (
         continue;
       }
 
-      // get resonance skill tax cut percent of this city
-      const resonanceSkillTaxCutPercent = getResonanceSkillTaxCutPercent(roles, fromCity);
+      // 买入税率使用出发城市的成员共振减税。
+      const buyResonanceSkillTaxCutPercent = getResonanceSkillTaxCutPercent(roles, fromCity);
 
       // calculate buy price and buy lot
       let pdtPrices: OnegraphPriceDataItem[] = availableProducts.flatMap((product) => {
@@ -455,7 +459,7 @@ export const calculateOneGraphBuyCombinations = (
         const eventTaxVariation = getGameEventTaxVariation(product, fromCity, playerConfigEvents);
 
         // sum all tax variation
-        tax += eventTaxVariation + resonanceSkillTaxCutPercent;
+        tax += eventTaxVariation + buyResonanceSkillTaxCutPercent;
 
         // don't apply tax to buy price yet, tax should be deducted from profit later
 
@@ -471,8 +475,9 @@ export const calculateOneGraphBuyCombinations = (
         // sum all buy more percent
         const totalBuyMorePercent = resonanceSkillBuyMorePercent + prestigeBuyMorePercent + eventBuyMorePercent;
 
-        // apply buy more percent to buy lot
+        // 先应用百分比加购，再追加固定数量加购。
         buyLot = Math.round((buyLot * (100 + totalBuyMorePercent)) / 100);
+        buyLot += getResonanceSkillBuyMoreFlatAmount(roles, product);
 
         return [
           {
@@ -494,6 +499,9 @@ export const calculateOneGraphBuyCombinations = (
         //console.warn(`Prestige configurtation not found for ${toCityMaster} level ${prestige[toCityMaster]}`);
         continue;
       }
+
+      // 卖出税率使用目的城市的成员共振减税，不能沿用出发城市。
+      const sellResonanceSkillTaxCutPercent = getResonanceSkillTaxCutPercent(roles, toCity);
 
       // calculate sell price and songle profit
       pdtPrices = pdtPrices
@@ -517,13 +525,13 @@ export const calculateOneGraphBuyCombinations = (
           let sellTaxRate = sellPrestige.specialTax[toCityMaster] ?? sellPrestige.generalTax;
 
           // sum all tax variation
-          sellTaxRate += resonanceSkillTaxCutPercent;
+          sellTaxRate += sellResonanceSkillTaxCutPercent;
 
           // deduct sell tax, it applies to (sell price - buy price before buy tax)
           singleProfit -= singleProfit * sellTaxRate;
 
           // deduct buy tax from profit
-          singleProfit -= buyPrice * (it.buyTaxRate + resonanceSkillTaxCutPercent);
+          singleProfit -= buyPrice * it.buyTaxRate;
 
           // round
           singleProfit = Math.round(singleProfit);
@@ -698,6 +706,29 @@ export const getResonanceSkillBuyMorePercent = (roles: PlayerConfigRoles, produc
   }
 
   return resonanceSkillBuyMorePercent;
+};
+
+export const getResonanceSkillBuyMoreFlatAmount = (roles: PlayerConfigRoles, product: Product) => {
+  let resonanceSkillBuyMoreFlatAmount = 0;
+  for (const roleName in roles) {
+    const playerRole = roles[roleName];
+    const level = playerRole.resonance;
+    if (level === 0) {
+      continue;
+    }
+
+    const rollResonances = ROLE_RESONANCE_SKILLS[roleName];
+    const skill = rollResonances?.[level];
+    if (!skill) {
+      console.warn(`Resonance skill not found for ${roleName} level ${level}`);
+      continue;
+    }
+
+    // AddQtyNum 类型技能是固定加购数量，不参与百分比计算。
+    resonanceSkillBuyMoreFlatAmount += skill.buyMoreFlat?.product?.[product.name] ?? 0;
+  }
+
+  return resonanceSkillBuyMoreFlatAmount;
 };
 
 export const getGameEventBuyMorePercent = (product: Product, fromCity: CityName, eventsConfig: PlayerConfigEvents) => {

@@ -6,7 +6,7 @@ import { intervalTime } from './utils/time'
 import axios from 'axios';
 import { GetPricesProducts } from './interfaces/get-prices';
 import { convertFirebaseDataToGetPricesData,convertFirebaseDataToGetPricesDataNew } from './utils/price-api-utils'
-import { calculateOneGraphBuyCombinations,getOneGraphRecommendation,calculateGeneralProfitIndex,getGameEventBuyMorePercent,getGameEventTaxVariation,getResonanceSkillBuyMorePercent,getResonanceSkillTaxCutPercent } from './utils/route-page-utils'
+import { calculateOneGraphBuyCombinations,getOneGraphRecommendation,calculateGeneralProfitIndex,getGameEventBuyMorePercent,getGameEventTaxVariation,getResonanceSkillBuyMorePercent,getResonanceSkillBuyMoreFlatAmount,getResonanceSkillTaxCutPercent } from './utils/route-page-utils'
 import { BotConfig, BotConfigNoReturnBargain, BotConfigSteam, BotConfigNoReturnBargainSteam } from './interfaces/player-config';
 import { CITIES,CITIESSTEAM,CITY_BELONGS_TO } from './data/cicies';
 import { OnegraphRecommendations,OnegraphBuyCombinationStats,OnegraphTopProfit,OnegraphTopProfitItem,OnegraphTopProfitSortedBy } from './interfaces/route-page';
@@ -304,6 +304,14 @@ function getWulinyuanReturnBargainOptions() {
   ];
 }
 
+function getSpecialCurrencyCityTaxRate(cityName: string, prestige) {
+  // 武林源基础税率固定为 15%，不随城市声望变化。
+  if (cityName === wulinyuanCityName) {
+    return 0.15;
+  }
+  return prestige.specialTax[cityName] ?? prestige.generalTax;
+}
+
 function getJiaoziMarketOutput(goodsData: GetPricesProducts) {
   return getWulinyuanRouteOutput(goodsData, "jiaozi-only");
 }
@@ -326,7 +334,7 @@ function findBestCurrencyIncomeRoute(goodsData: GetPricesProducts, fromCities: s
     if (!buyPrestige) {
       continue;
     }
-    const resonanceSkillTaxCutPercent = getResonanceSkillTaxCutPercent(config.roles, fromCity as any);
+    const buyResonanceSkillTaxCutPercent = getResonanceSkillTaxCutPercent(config.roles, fromCity as any);
     for (const toCity of toCities) {
       const toCityMaster = CITY_BELONGS_TO[toCity] ?? toCity;
       const sellPrestige = PRESTIGES.find((p) => p.level === config.prestige[toCityMaster]);
@@ -334,6 +342,7 @@ function findBestCurrencyIncomeRoute(goodsData: GetPricesProducts, fromCities: s
       if (!sellPrestige || !fatigue) {
         continue;
       }
+      const sellResonanceSkillTaxCutPercent = getResonanceSkillTaxCutPercent(config.roles, toCity as any);
       const productCandidates = [];
       for (const goodsName in goodsData) {
         const product = products_default.find((it) => it.name === goodsName) as any;
@@ -352,11 +361,13 @@ function findBestCurrencyIncomeRoute(goodsData: GetPricesProducts, fromCities: s
         if (!buyLotBase) {
           continue;
         }
+        // 武林源声望不提高武林源出售商品的购买数量，但乘员/活动加购仍然生效。
+        const prestigeBuyMorePercent = fromCity === wulinyuanCityName ? 0 : buyPrestige.extraBuy * 100;
         const buyMorePercent =
           getResonanceSkillBuyMorePercent(config.roles, product, fromCity as any) +
-          buyPrestige.extraBuy * 100 +
+          prestigeBuyMorePercent +
           getGameEventBuyMorePercent(product, fromCity as any, config.events);
-        const buyLot = Math.round((buyLotBase * (100 + buyMorePercent)) / 100);
+        const buyLot = Math.round((buyLotBase * (100 + buyMorePercent)) / 100) + getResonanceSkillBuyMoreFlatAmount(config.roles, product);
         const lot = Math.min(config.maxLot, buyLot * (restock + 1));
         if (!lot) {
           continue;
@@ -364,14 +375,14 @@ function findBestCurrencyIncomeRoute(goodsData: GetPricesProducts, fromCities: s
         // 买入花费属于出发地货币，往返结算时会从对应货币收益里扣掉。
         const bargain = bargainConfig.disabled ? 0 : bargainConfig.bargainPercent ?? 0;
         const buyPrice = Math.round(buyData.price * (1 - bargain / 100));
-        let buyTaxRate = buyPrestige.specialTax[fromCityMaster] ?? buyPrestige.generalTax;
-        buyTaxRate += getGameEventTaxVariation(product, fromCity as any, config.events) + resonanceSkillTaxCutPercent;
+        let buyTaxRate = getSpecialCurrencyCityTaxRate(fromCityMaster, buyPrestige);
+        buyTaxRate += getGameEventTaxVariation(product, fromCity as any, config.events) + buyResonanceSkillTaxCutPercent;
         const singleCost = Math.round(buyPrice * (1 + buyTaxRate));
         // 卖出收入属于目的地货币，税后收入用于计算该货币的收益。
         const raise = bargainConfig.disabled ? 0 : bargainConfig.raisePercent ?? 0;
         const sellPrice = Math.round(sellData.price * (1 + raise / 100));
-        let sellTaxRate = sellPrestige.specialTax[toCityMaster] ?? sellPrestige.generalTax;
-        sellTaxRate += resonanceSkillTaxCutPercent;
+        let sellTaxRate = getSpecialCurrencyCityTaxRate(toCityMaster, sellPrestige);
+        sellTaxRate += getGameEventTaxVariation(product, toCity as any, config.events) + sellResonanceSkillTaxCutPercent;
         const singleIncome = Math.round(sellPrice * (1 - sellTaxRate));
         if (singleIncome <= 0) {
           continue;
@@ -740,7 +751,6 @@ function getWulinyuanReturnDebugLines(goodsData: GetPricesProducts) {
 
   const fromCityMaster = CITY_BELONGS_TO[wulinyuanCityName] ?? wulinyuanCityName;
   const buyPrestige = PRESTIGES.find((p) => p.level === config.prestige[fromCityMaster]);
-  const resonanceSkillTaxCutPercent = getResonanceSkillTaxCutPercent(config.roles, wulinyuanCityName as any);
   for (const toCity of cityList) {
     stats.routeChecks++;
     if (!buyPrestige) {
@@ -749,6 +759,7 @@ function getWulinyuanReturnDebugLines(goodsData: GetPricesProducts) {
     }
     const toCityMaster = CITY_BELONGS_TO[toCity] ?? toCity;
     const sellPrestige = PRESTIGES.find((p) => p.level === config.prestige[toCityMaster]);
+    const sellResonanceSkillTaxCutPercent = getResonanceSkillTaxCutPercent(config.roles, toCity as any);
     if (!sellPrestige) {
       stats.missingSellPrestige++;
       continue;
@@ -790,7 +801,7 @@ function getWulinyuanReturnDebugLines(goodsData: GetPricesProducts) {
       const raise = config.bargain.disabled ? 0 : config.bargain.raisePercent ?? 0;
       const sellPrice = Math.round(sellData.price * (1 + raise / 100));
       let sellTaxRate = sellPrestige.specialTax[toCityMaster] ?? sellPrestige.generalTax;
-      sellTaxRate += getGameEventTaxVariation(product, wulinyuanCityName as any, config.events) + resonanceSkillTaxCutPercent;
+      sellTaxRate += getGameEventTaxVariation(product, toCity as any, config.events) + sellResonanceSkillTaxCutPercent;
       const singleIncome = Math.round(sellPrice * (1 - sellTaxRate));
       if (singleIncome <= 0) {
         stats.nonPositiveIncome++;
@@ -995,10 +1006,16 @@ function registerSpecialCurrencyCommands(ctx: Context, market: SpecialCurrencyMa
   // 特殊货币指令统一注册，后续新增货币只需要扩展配置和输出缓存。
   ctx.command(`${market.currencyName}调试`)
   .action(async ({ session }) => {
+    if (!isAdminSession(session)) {
+      return "该调试指令仅管理员可用";
+    }
     await sendWulinyuanMarketDebugOutput(session);
     });
   ctx.command(`${market.currencyName}测试`)
   .action(async ({ session }) => {
+    if (!isAdminSession(session)) {
+      return "该调试指令仅管理员可用";
+    }
     await sendWulinyuanMarketDebugOutput(session);
     });
   ctx.command(market.currencyName)

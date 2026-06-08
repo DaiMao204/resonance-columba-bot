@@ -960,6 +960,23 @@ export var resonanceskills_default = {
                 }
             }
         },
+        "4": {
+            buyMore: {
+                product: {
+                    发动机: 20,
+                    汽配零件: 20,
+                    阿妮塔小型桦树发电机: 20,
+                    阿妮塔101民用无人机: 20,
+                    无刷电机: 20,
+                    家用机器人: 20
+                }
+            },
+            buyMoreFlat: {
+                product: {
+                    航天半导体: 1
+                }
+            }
+        },
         "5": {
             buyMore: {
                 product: {
@@ -969,6 +986,11 @@ export var resonanceskills_default = {
                     阿妮塔101民用无人机: 30,
                     无刷电机: 30,
                     家用机器人: 30
+                }
+            },
+            buyMoreFlat: {
+                product: {
+                    航天半导体: 1
                 }
             }
         }
@@ -1003,6 +1025,22 @@ export var resonanceskills_default = {
                     飞弹: 30,
                     碳钢匕首: 30,
                     精钢伐木斧: 30
+                }
+            }
+        }
+    },
+    美琪: {
+        "4": {
+            buyMoreFlat: {
+                product: {
+                    家用机器人: 1
+                }
+            }
+        },
+        "5": {
+            buyMoreFlat: {
+                product: {
+                    家用机器人: 1
                 }
             }
         }
@@ -1208,6 +1246,9 @@ export var role_resonanceskills = {
         resonance: 5
     },
     露比: {
+        resonance: 5
+    },
+    美琪: {
         resonance: 5
     },
     迪妮莎: {

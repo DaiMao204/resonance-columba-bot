@@ -8,6 +8,11 @@ export interface ResonanceSkill {
     };
     all?: number; // + buy more for all products
   };
+  buyMoreFlat?: {
+    product?: {
+      [pdtName: string]: number; // 固定增加可买数量，例如 1
+    };
+  };
   bargain?: {
     firstTrySuccessRate?: number; // + success rate for first bargain try
     afterFailedSuccessRate?: number; // + success rate for after failed bargain try

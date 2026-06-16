@@ -451,6 +451,7 @@ export const calculateOneGraphBuyCombinations = (
         // apply bargain to buy price
         const bargain = barginDisabled ? 0 : bargainPercent ?? 0;
         buyPrice = buyPrice * (1 - bargain / 100);
+        buyPrice = Math.round(buyPrice);
 
         // get prestiged tax to buy price
         let tax = buyPrestige.specialTax[fromCityMaster] ?? buyPrestige.generalTax;

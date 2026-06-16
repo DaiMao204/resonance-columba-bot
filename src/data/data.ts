@@ -140,6 +140,22 @@ export var resonanceskills_default = {
             }
         }
     },
+    多萝西·瑰晨: {
+        "4": {
+            buyMore: {
+                product: {
+                    弹丸加速装置: 20
+                }
+            }
+        },
+        "5": {
+            buyMore: {
+                product: {
+                    弹丸加速装置: 20
+                }
+            }
+        }
+    },
     卡莲: {
         "4": {
             buyMore: {
@@ -1105,6 +1121,9 @@ export var role_resonanceskills = {
         resonance: 4
     },
     多萝西: {
+        resonance: 5
+    },
+    多萝西·瑰晨: {
         resonance: 5
     },
     卡莲: {

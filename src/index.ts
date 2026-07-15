@@ -81,7 +81,7 @@ export const Config: Schema<Config> = Schema.object({
   ErrorItemList: Schema.array(Schema.string()).default([]).description("屏蔽商品名称列表"),
   SteamOpen:Schema.boolean().default(false).description("是否开启steam服行情"),
   SteamTeamList: Schema.array(Schema.string()).default([]).description("steam服群组列表"),
-  SpecialCurrencyMarketOpen: Schema.dict(Schema.boolean()).default({ 交子: true }).description("特殊货币城市开关，键可填货币名、城市名或内部 key"),
+  SpecialCurrencyMarketOpen: Schema.dict(Schema.boolean()).default({ 交子: false }).description("特殊货币城市开关，默认关闭；需要恢复时填 交子 / 武林源 / jiaozi 为 true"),
   ItemSendList: Schema.dict(Schema.dict(ConfigItemList.description("商品名称"), Schema.string()).description("群号"), Schema.string()).description("商品行情通告表"),
   StartUrl: Schema.string().description("启动APIURL，默认留空")
 })
@@ -205,6 +205,7 @@ interface SpecialCurrencyMarketConfig {
   cityKeywords: string[];
   maxRestock: number;
   priceDivisorFromBase: number;
+  defaultOpen: boolean;
 }
 
 const specialCurrencyMarkets: SpecialCurrencyMarketConfig[] = [
@@ -217,6 +218,7 @@ const specialCurrencyMarkets: SpecialCurrencyMarketConfig[] = [
     cityKeywords: ["武林源", "武林"],
     maxRestock: 6,
     priceDivisorFromBase: 20,
+    defaultOpen: false,
   },
 ];
 
@@ -260,18 +262,47 @@ function formatSpecialCurrencyPrice(price: number, market: SpecialCurrencyMarket
 }
 
 function isSpecialCurrencyMarketEnabled(market: SpecialCurrencyMarketConfig) {
-  // 同时支持按内部 key、货币名或城市名开关，任一项明确为 false 都会关闭该特殊市场。
+  // 同时支持按内部 key、货币名或城市名开关；默认按市场配置决定。
   const switches = SpecialCurrencyMarketOpen ?? {};
   const values = [switches[market.key], switches[market.currencyName], switches[market.cityName]];
-  return !values.some((value) => value === false);
+  if (values.some((value) => value === true)) {
+    return true;
+  }
+  if (values.some((value) => value === false)) {
+    return false;
+  }
+  return market.defaultOpen;
 }
 
 function getEnabledSpecialCurrencyMarkets() {
   return specialCurrencyMarkets.filter((market) => isSpecialCurrencyMarketEnabled(market));
 }
 
+function hasEnabledSpecialCurrencyMarkets() {
+  return getEnabledSpecialCurrencyMarkets().length > 0;
+}
+
 function getSpecialCurrencyCityList() {
   return [...cityList, ...getEnabledSpecialCurrencyMarkets().map((market) => market.cityName)];
+}
+
+function resetSpecialCurrencyMarketOutputs() {
+  const jiaoziClosedText = `${jiaoziMarketConfig.currencyName}行情已关闭`;
+  const xiuwuClosedText = `${xiuwuCommandName}行情已关闭`;
+  jiaozi_output_str = jiaoziClosedText;
+  jiaozi_short_output_str = jiaoziClosedText;
+  mixed_total_first_output_str = jiaoziClosedText;
+  mixed_total_first_short_output_str = jiaoziClosedText;
+  mixed_jiaozi_first_output_str = jiaoziClosedText;
+  mixed_jiaozi_first_short_output_str = jiaoziClosedText;
+  mixed_tiemeng_first_output_str = jiaoziClosedText;
+  mixed_tiemeng_first_short_output_str = jiaoziClosedText;
+  xiuwu_output_str = xiuwuClosedText;
+  xiuwu_short_output_str = xiuwuClosedText;
+  xiuwu_total_output_str = xiuwuClosedText;
+  xiuwu_total_short_output_str = xiuwuClosedText;
+  xiuwu_tiemeng_output_str = xiuwuClosedText;
+  xiuwu_tiemeng_short_output_str = xiuwuClosedText;
 }
 
 function getSpecialCurrencyPlayerConfig(market: SpecialCurrencyMarketConfig) {
@@ -607,8 +638,11 @@ function getXiuwuRouteOutput(goodsData: GetPricesProducts, mode: Extract<MixedCu
 
 function getXiuwuMarketCommandOutput(content: string, detailMode: boolean) {
   const command = toSimplified(content);
-  if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig) || !command.includes(xiuwuCommandName)) {
+  if (!command.includes(xiuwuCommandName)) {
     return null;
+  }
+  if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig)) {
+    return `${xiuwuCommandName}行情已关闭`;
   }
   if (command.includes(`${xiuwuCommandName}0`) || command.includes(`${xiuwuCommandName} 0`)) {
     return detailMode ? xiuwu_total_output_str : xiuwu_total_short_output_str;
@@ -622,8 +656,11 @@ function getXiuwuMarketCommandOutput(content: string, detailMode: boolean) {
 
 function getWulinyuanMarketCommandOutput(content: string, detailMode: boolean) {
   const command = toSimplified(content);
-  if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig) || !specialMarketMatchesCommand(jiaoziMarketConfig, command)) {
+  if (!specialMarketMatchesCommand(jiaoziMarketConfig, command)) {
     return null;
+  }
+  if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig)) {
+    return `${jiaoziMarketConfig.currencyName}行情已关闭`;
   }
 
   // 交子0=总和优先，交子1=交子优先，交子2=铁盟币优先；不写数字默认总和优先。
@@ -1036,9 +1073,31 @@ function registerSpecialCurrencyCommands(ctx: Context, market: SpecialCurrencyMa
     });
 }
 
+function registerXiuwuCommands(ctx: Context) {
+  if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig)) {
+    return;
+  }
+  ctx.command("修武")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + xiuwu_short_output_str);
+    });
+  ctx.command("修武0")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + xiuwu_total_short_output_str);
+    });
+  ctx.command("修武1")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + xiuwu_short_output_str);
+    });
+  ctx.command("修武2")
+  .action(async ({ session }) => {
+    session.send(h("quote", { id: session.event.message.id }) + xiuwu_tiemeng_short_output_str);
+    });
+}
+
 function isAllowedSpecialCurrencyMessage(content: string) {
   const command = toSimplified(content).trim();
-  if (command === xiuwuCommandName || command.includes(`${xiuwuCommandName}`)) {
+  if (isSpecialCurrencyMarketEnabled(jiaoziMarketConfig) && (command === xiuwuCommandName || command.includes(`${xiuwuCommandName}`))) {
     return true;
   }
   return getEnabledSpecialCurrencyMarkets().some((market) =>
@@ -1456,8 +1515,12 @@ export async function get_price(){
     }
     ItemMaxPrice = get_max_price();
     //console.log(ItemMaxPrice)
-    const specialCityList = getSpecialCurrencyCityList();
-    responseDataJiaozi = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesDataNew(data, specialCityList, true), specialCityList, defaultProductNames);
+    if (hasEnabledSpecialCurrencyMarkets()) {
+      const specialCityList = getSpecialCurrencyCityList();
+      responseDataJiaozi = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesDataNew(data, specialCityList, true), specialCityList, defaultProductNames);
+    } else {
+      responseDataJiaozi = {};
+    }
     responseData = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesDataNew(data,cityList), cityList, defaultProductNames);
 
   }
@@ -1519,8 +1582,12 @@ export async function get_price(){
         }
       return;
     }
-    const specialCityList = getSpecialCurrencyCityList();
-    responseDataJiaozi = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesData(data, specialCityList), specialCityList, defaultProductNames);
+    if (hasEnabledSpecialCurrencyMarkets()) {
+      const specialCityList = getSpecialCurrencyCityList();
+      responseDataJiaozi = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesData(data, specialCityList), specialCityList, defaultProductNames);
+    } else {
+      responseDataJiaozi = {};
+    }
     responseData = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesData(data), cityList, defaultProductNames);
   }
 
@@ -1534,44 +1601,41 @@ export async function get_price(){
   low_output_str = "";
   small_output_str = "";
   short_output_str = "";
-  jiaozi_output_str = "";
-  jiaozi_short_output_str = "";
-  mixed_total_first_output_str = "";
-  mixed_total_first_short_output_str = "";
-  mixed_jiaozi_first_output_str = "";
-  mixed_jiaozi_first_short_output_str = "";
-  mixed_tiemeng_first_output_str = "";
-  mixed_tiemeng_first_short_output_str = "";
+  resetSpecialCurrencyMarketOutputs();
 
   for (let item in ErrorItemList){
     if (ErrorItemList[item] in responseData)
       responseData[ErrorItemList[item]]['buy'] = {}
-    if (responseDataJiaozi && ErrorItemList[item] in responseDataJiaozi)
-      responseDataJiaozi[ErrorItemList[item]]['buy'] = {}
   }
   //console.log(responseData)
 
-  const jiaoziMarketOutput = getJiaoziMarketOutput(responseDataJiaozi);
-  jiaozi_output_str = jiaoziMarketOutput.output;
-  jiaozi_short_output_str = jiaoziMarketOutput.shortOutput;
-  const mixedTotalFirstOutput = getMixedCurrencyMarketOutput(responseDataJiaozi, "total");
-  mixed_total_first_output_str = mixedTotalFirstOutput.output;
-  mixed_total_first_short_output_str = mixedTotalFirstOutput.shortOutput;
-  const mixedJiaoziFirstOutput = getMixedCurrencyMarketOutput(responseDataJiaozi, "jiaozi");
-  mixed_jiaozi_first_output_str = mixedJiaoziFirstOutput.output;
-  mixed_jiaozi_first_short_output_str = mixedJiaoziFirstOutput.shortOutput;
-  const mixedTiemengFirstOutput = getMixedCurrencyMarketOutput(responseDataJiaozi, "tiemeng");
-  mixed_tiemeng_first_output_str = mixedTiemengFirstOutput.output;
-  mixed_tiemeng_first_short_output_str = mixedTiemengFirstOutput.shortOutput;
-  const xiuwuTotalOutput = getXiuwuRouteOutput(responseDataJiaozi, "mixed-total-first");
-  xiuwu_total_output_str = xiuwuTotalOutput.output;
-  xiuwu_total_short_output_str = xiuwuTotalOutput.shortOutput;
-  const xiuwuOutput = getXiuwuRouteOutput(responseDataJiaozi, "mixed-jiaozi-first");
-  xiuwu_output_str = xiuwuOutput.output;
-  xiuwu_short_output_str = xiuwuOutput.shortOutput;
-  const xiuwuTiemengOutput = getXiuwuRouteOutput(responseDataJiaozi, "mixed-tiemeng-first");
-  xiuwu_tiemeng_output_str = xiuwuTiemengOutput.output;
-  xiuwu_tiemeng_short_output_str = xiuwuTiemengOutput.shortOutput;
+  if (isSpecialCurrencyMarketEnabled(jiaoziMarketConfig)) {
+    for (let item in ErrorItemList){
+      if (responseDataJiaozi && ErrorItemList[item] in responseDataJiaozi)
+        responseDataJiaozi[ErrorItemList[item]]['buy'] = {}
+    }
+    const jiaoziMarketOutput = getJiaoziMarketOutput(responseDataJiaozi);
+    jiaozi_output_str = jiaoziMarketOutput.output;
+    jiaozi_short_output_str = jiaoziMarketOutput.shortOutput;
+    const mixedTotalFirstOutput = getMixedCurrencyMarketOutput(responseDataJiaozi, "total");
+    mixed_total_first_output_str = mixedTotalFirstOutput.output;
+    mixed_total_first_short_output_str = mixedTotalFirstOutput.shortOutput;
+    const mixedJiaoziFirstOutput = getMixedCurrencyMarketOutput(responseDataJiaozi, "jiaozi");
+    mixed_jiaozi_first_output_str = mixedJiaoziFirstOutput.output;
+    mixed_jiaozi_first_short_output_str = mixedJiaoziFirstOutput.shortOutput;
+    const mixedTiemengFirstOutput = getMixedCurrencyMarketOutput(responseDataJiaozi, "tiemeng");
+    mixed_tiemeng_first_output_str = mixedTiemengFirstOutput.output;
+    mixed_tiemeng_first_short_output_str = mixedTiemengFirstOutput.shortOutput;
+    const xiuwuTotalOutput = getXiuwuRouteOutput(responseDataJiaozi, "mixed-total-first");
+    xiuwu_total_output_str = xiuwuTotalOutput.output;
+    xiuwu_total_short_output_str = xiuwuTotalOutput.shortOutput;
+    const xiuwuOutput = getXiuwuRouteOutput(responseDataJiaozi, "mixed-jiaozi-first");
+    xiuwu_output_str = xiuwuOutput.output;
+    xiuwu_short_output_str = xiuwuOutput.shortOutput;
+    const xiuwuTiemengOutput = getXiuwuRouteOutput(responseDataJiaozi, "mixed-tiemeng-first");
+    xiuwu_tiemeng_output_str = xiuwuTiemengOutput.output;
+    xiuwu_tiemeng_short_output_str = xiuwuTiemengOutput.shortOutput;
+  }
   for (let qqTeam in ItemSendList) {
     for (let Item in ItemSendList[qqTeam]) {
       if (ItemSendList[qqTeam][Item]["type"] == "buy") {
@@ -1906,6 +1970,9 @@ export async function get_price_steam(){
 export function apply(ctx: Context, config: Config) {
   // write your plugin here
   SpecialCurrencyMarketOpen = config.SpecialCurrencyMarketOpen ?? {};
+  if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig)) {
+    resetSpecialCurrencyMarketOutputs();
+  }
   ctx.on("ready", () => {
     ctx_send = ctx;
     const time = ctx.config.TimerTime * 6e4;
@@ -1924,6 +1991,9 @@ export function apply(ctx: Context, config: Config) {
     if (ctx.config.SteamTeamList.lenth != 0)
       SteamTeamList = ctx.config.SteamTeamList;
     SpecialCurrencyMarketOpen = ctx.config.SpecialCurrencyMarketOpen ?? {};
+    if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig)) {
+      resetSpecialCurrencyMarketOutputs();
+    }
     SteamOpen = ctx.config.SteamOpen;
     bigPrice = ctx.config.BigPrice;
     lowBigPrice = ctx.config.LowBigPrice;
@@ -1955,22 +2025,7 @@ export function apply(ctx: Context, config: Config) {
     session.send(h("quote", { id: session.event.message.id }) + output_str_steam);
     });
   registerSpecialCurrencyCommands(ctx, jiaoziMarketConfig);
-  ctx.command("修武")
-  .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + xiuwu_short_output_str);
-    });
-  ctx.command("修武0")
-  .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + xiuwu_total_short_output_str);
-    });
-  ctx.command("修武1")
-  .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + xiuwu_short_output_str);
-    });
-  ctx.command("修武2")
-  .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + xiuwu_tiemeng_short_output_str);
-    });
+  registerXiuwuCommands(ctx);
   ctx.command("当前行情")
   .action(async ({ session }) => {
     const wulinyuanMarketOutput = getWulinyuanMarketCommandOutput(session.content, false);

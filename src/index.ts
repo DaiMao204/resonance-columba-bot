@@ -81,7 +81,7 @@ export const Config: Schema<Config> = Schema.object({
   ErrorItemList: Schema.array(Schema.string()).default([]).description("屏蔽商品名称列表"),
   SteamOpen:Schema.boolean().default(false).description("是否开启steam服行情"),
   SteamTeamList: Schema.array(Schema.string()).default([]).description("steam服群组列表"),
-  SpecialCurrencyMarketOpen: Schema.dict(Schema.boolean()).default({ 交子: false }).description("特殊货币城市开关，默认关闭；需要恢复时填 交子 / 武林源 / jiaozi 为 true"),
+  SpecialCurrencyMarketOpen: Schema.dict(Schema.boolean()).default({ 交子: true }).description("特殊货币城市开关，键可填货币名、城市名或内部 key"),
   ItemSendList: Schema.dict(Schema.dict(ConfigItemList.description("商品名称"), Schema.string()).description("群号"), Schema.string()).description("商品行情通告表"),
   StartUrl: Schema.string().description("启动APIURL，默认留空")
 })
@@ -218,7 +218,7 @@ const specialCurrencyMarkets: SpecialCurrencyMarketConfig[] = [
     cityKeywords: ["武林源", "武林"],
     maxRestock: 6,
     priceDivisorFromBase: 20,
-    defaultOpen: false,
+    defaultOpen: true,
   },
 ];
 

@@ -36,6 +36,7 @@ export interface Config {
   ErrorItemList: Array<string>
   SteamOpen: boolean
   SteamTeamList: Array<string>
+  JiaoziMarketOpen: boolean
   SpecialCurrencyMarketOpen: Dict<boolean>
   ItemSendList: Dict<Dict<ConfigItemList,string> , string>
   StartUrl: string
@@ -81,7 +82,8 @@ export const Config: Schema<Config> = Schema.object({
   ErrorItemList: Schema.array(Schema.string()).default([]).description("屏蔽商品名称列表"),
   SteamOpen:Schema.boolean().default(false).description("是否开启steam服行情"),
   SteamTeamList: Schema.array(Schema.string()).default([]).description("steam服群组列表"),
-  SpecialCurrencyMarketOpen: Schema.dict(Schema.boolean()).default({ 交子: true }).description("特殊货币城市开关，键可填货币名、城市名或内部 key"),
+  JiaoziMarketOpen: Schema.boolean().default(true).description("是否开启武林源、交子相关功能和指令"),
+  SpecialCurrencyMarketOpen: Schema.dict(Schema.boolean()).default({ 交子: true }).description("特殊货币城市高级开关，键可填货币名、城市名或内部 key；任一项关闭时优先关闭"),
   ItemSendList: Schema.dict(Schema.dict(ConfigItemList.description("商品名称"), Schema.string()).description("群号"), Schema.string()).description("商品行情通告表"),
   StartUrl: Schema.string().description("启动APIURL，默认留空")
 })
@@ -177,6 +179,8 @@ var ItemMaxPriceSteam;
 
 var SteamTeamList = [];
 
+var JiaoziMarketOpen = true;
+
 var SpecialCurrencyMarketOpen: Dict<boolean> = {};
 
 const adminQQList = ["1443197830"];
@@ -262,14 +266,20 @@ function formatSpecialCurrencyPrice(price: number, market: SpecialCurrencyMarket
 }
 
 function isSpecialCurrencyMarketEnabled(market: SpecialCurrencyMarketConfig) {
-  // 同时支持按内部 key、货币名或城市名开关；默认按市场配置决定。
+  if (market.key === jiaoziMarketConfig.key && !JiaoziMarketOpen) {
+    return false;
+  }
+  // 同时支持按内部 key、货币名或城市名开关；冲突时关闭优先。
   const switches = SpecialCurrencyMarketOpen ?? {};
   const values = [switches[market.key], switches[market.currencyName], switches[market.cityName]];
+  if (values.some((value) => value === false)) {
+    return false;
+  }
   if (values.some((value) => value === true)) {
     return true;
   }
-  if (values.some((value) => value === false)) {
-    return false;
+  if (market.key === jiaoziMarketConfig.key) {
+    return JiaoziMarketOpen;
   }
   return market.defaultOpen;
 }
@@ -1969,6 +1979,7 @@ export async function get_price_steam(){
 
 export function apply(ctx: Context, config: Config) {
   // write your plugin here
+  JiaoziMarketOpen = config.JiaoziMarketOpen ?? true;
   SpecialCurrencyMarketOpen = config.SpecialCurrencyMarketOpen ?? {};
   if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig)) {
     resetSpecialCurrencyMarketOutputs();
@@ -1990,7 +2001,8 @@ export function apply(ctx: Context, config: Config) {
       ShortTeamList = ctx.config.ShortTeamList;
     if (ctx.config.SteamTeamList.lenth != 0)
       SteamTeamList = ctx.config.SteamTeamList;
-    SpecialCurrencyMarketOpen = ctx.config.SpecialCurrencyMarketOpen ?? {};
+    JiaoziMarketOpen = config.JiaoziMarketOpen ?? true;
+    SpecialCurrencyMarketOpen = config.SpecialCurrencyMarketOpen ?? {};
     if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig)) {
       resetSpecialCurrencyMarketOutputs();
     }

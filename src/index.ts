@@ -1067,19 +1067,19 @@ function registerSpecialCurrencyCommands(ctx: Context, market: SpecialCurrencyMa
     });
   ctx.command(market.currencyName)
   .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("1"));
+    session.send(h("quote", { id: session.event.message.id }) + marketOutput(getWulinyuanShortcutOutput("1")));
     });
   ctx.command(`${market.currencyName}0`)
   .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("0"));
+    session.send(h("quote", { id: session.event.message.id }) + marketOutput(getWulinyuanShortcutOutput("0")));
     });
   ctx.command(`${market.currencyName}1`)
   .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("1"));
+    session.send(h("quote", { id: session.event.message.id }) + marketOutput(getWulinyuanShortcutOutput("1")));
     });
   ctx.command(`${market.currencyName}2`)
   .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + getWulinyuanShortcutOutput("2"));
+    session.send(h("quote", { id: session.event.message.id }) + marketOutput(getWulinyuanShortcutOutput("2")));
     });
 }
 
@@ -1089,19 +1089,19 @@ function registerXiuwuCommands(ctx: Context) {
   }
   ctx.command("修武")
   .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + xiuwu_short_output_str);
+    session.send(h("quote", { id: session.event.message.id }) + marketOutput(xiuwu_short_output_str));
     });
   ctx.command("修武0")
   .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + xiuwu_total_short_output_str);
+    session.send(h("quote", { id: session.event.message.id }) + marketOutput(xiuwu_total_short_output_str));
     });
   ctx.command("修武1")
   .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + xiuwu_short_output_str);
+    session.send(h("quote", { id: session.event.message.id }) + marketOutput(xiuwu_short_output_str));
     });
   ctx.command("修武2")
   .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + xiuwu_tiemeng_short_output_str);
+    session.send(h("quote", { id: session.event.message.id }) + marketOutput(xiuwu_tiemeng_short_output_str));
     });
 }
 
@@ -1484,15 +1484,141 @@ function get_max_price() {
 
 var ti;
 var tiInterval;
-var nextTi = Date.now() / 1136 - 60;
+var nextTi = 0;
 var waitTi = 0;
 
 var tiSteam;
 var tiIntervalSteam;
-var nextTiSteam = Date.now() / 1136 - 60;
+var nextTiSteam = 0;
 var waitTiSteam = 0;
 
-export async function get_price(){
+const marketState = { refreshTime: 0, interval: 0, failed: false, generation: 0 };
+const steamMarketState = { refreshTime: 0, interval: 0, failed: false, generation: 0 };
+let refreshing = false;
+let refreshingSteam = false;
+let marketDisposed = false;
+let marketGeneration = 0;
+
+function isMarketStale(steam = false) {
+  const state = steam ? steamMarketState : marketState;
+  return state.refreshTime > 0 && Date.now() >= (state.refreshTime + state.interval) * 1000;
+}
+
+function marketOutput(output: string, steam = false) {
+  if (output?.endsWith("行情已关闭")) return output;
+  const state = steam ? steamMarketState : marketState;
+  const prices = steam ? responseDataSteam : responseData;
+  if (!prices || Object.keys(prices).length === 0) {
+    return state.failed ? "行情获取失败，正在自动重试，请稍后再查。" : "行情数据尚未就绪，正在获取，请稍后再查。";
+  }
+  const snapshotTime = state.refreshTime > 0
+    ? new Date(state.refreshTime * 1000).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", hour12: false })
+    : "未知";
+  const notice = state.failed
+    ? `行情获取失败，正在自动重试；以下为缓存行情（快照时间：${snapshotTime}）。\n\n`
+    : isMarketStale(steam)
+      ? `行情数据已过期，上游尚未刷新；以下为缓存行情（快照时间：${snapshotTime}），仅供参考。\n\n`
+      : "";
+  return notice + (output || "行情暂无可用路线，请稍后再查。");
+}
+
+function validateTradeSnapshot(snapshot) {
+  if (!snapshot || !Number.isFinite(snapshot.refresh_time) || snapshot.refresh_time <= 0 ||
+      !Number.isFinite(snapshot.interval) || snapshot.interval <= 0 ||
+      !snapshot.server_trade || typeof snapshot.server_trade !== "object" ||
+      Array.isArray(snapshot.server_trade) || Object.keys(snapshot.server_trade).length === 0) {
+    throw new Error("行情接口返回了空数据或无效的刷新时间");
+  }
+  let quoteCount = 0;
+  for (const product of Object.values(snapshot.server_trade)) {
+    if (!product || typeof product !== "object" || Array.isArray(product))
+      throw new Error("行情接口返回了无效的商品数据");
+    for (const [type, cities] of Object.entries(product)) {
+      if ((type !== "buy" && type !== "sell") || !cities || typeof cities !== "object" || Array.isArray(cities))
+        throw new Error("行情接口返回了无效的买卖数据");
+      for (const quote of Object.values(cities) as any[]) {
+        if (!quote || !Number.isFinite(quote.price) || quote.price <= 0 ||
+            !Number.isFinite(quote.base_price) || quote.base_price <= 0 ||
+            !Number.isFinite(quote.ti) || quote.ti <= 0)
+          throw new Error("行情接口返回了无效的价格数据");
+        quoteCount++;
+      }
+    }
+  }
+  if (!quoteCount) throw new Error("行情接口没有可用报价");
+}
+
+function scheduleMarketRefresh(delay: number, steam = false) {
+  if (marketDisposed) return;
+  if (steam) {
+    clearTimeout(intervalIDSteam);
+    intervalIDSteam = setTimeout(get_price_steam, delay);
+  } else {
+    clearTimeout(intervalID);
+    intervalID = setTimeout(get_price, delay);
+  }
+}
+
+// A failed conversion/calculation must not leave quotes and route text from
+// different refreshes. The previous objects are not mutated by conversion.
+function preserveMarketCache(steam = false) {
+  const state = steam ? steamMarketState : marketState;
+  const previousState = { ...state };
+  const previousMin = min;
+  const previousLowMin = low_min;
+  const restoreState = () => {
+    Object.assign(state, previousState);
+    min = previousMin;
+    low_min = previousLowMin;
+  };
+  if (steam) {
+    const previous = [responseDataSteam, output_str_steam, low_output_str_steam, small_output_str_steam, short_output_str_steam] as const;
+    return () => {
+      [responseDataSteam, output_str_steam, low_output_str_steam, small_output_str_steam, short_output_str_steam] = previous;
+      restoreState();
+    };
+  }
+  const previous = [responseData, responseDataJiaozi, ItemMaxPrice,
+    output_str, low_output_str, small_output_str, short_output_str,
+    jiaozi_output_str, jiaozi_short_output_str,
+    mixed_total_first_output_str, mixed_total_first_short_output_str,
+    mixed_jiaozi_first_output_str, mixed_jiaozi_first_short_output_str,
+    mixed_tiemeng_first_output_str, mixed_tiemeng_first_short_output_str,
+    xiuwu_output_str, xiuwu_short_output_str, xiuwu_total_output_str, xiuwu_total_short_output_str,
+    xiuwu_tiemeng_output_str, xiuwu_tiemeng_short_output_str] as const;
+  return () => {
+    [responseData, responseDataJiaozi, ItemMaxPrice,
+      output_str, low_output_str, small_output_str, short_output_str,
+      jiaozi_output_str, jiaozi_short_output_str,
+      mixed_total_first_output_str, mixed_total_first_short_output_str,
+      mixed_jiaozi_first_output_str, mixed_jiaozi_first_short_output_str,
+      mixed_tiemeng_first_output_str, mixed_tiemeng_first_short_output_str,
+      xiuwu_output_str, xiuwu_short_output_str, xiuwu_total_output_str, xiuwu_total_short_output_str,
+      xiuwu_tiemeng_output_str, xiuwu_tiemeng_short_output_str] = previous;
+    restoreState();
+  };
+}
+
+export async function get_price() {
+  if (refreshing || marketDisposed) return;
+  refreshing = true;
+  let restoreCache = () => {};
+  const generation = marketGeneration;
+  try {
+    await refreshOfficialMarket(generation, () => { restoreCache = preserveMarketCache(); });
+  } catch (error) {
+    if (marketDisposed || generation !== marketGeneration) return;
+    restoreCache();
+    marketState.failed = true;
+    console.warn("官服行情获取失败，保留已有缓存，60秒后重试：", error instanceof Error ? error.message : String(error));
+    if (getDataUrl !== "https://www.resonance-columba.com/api/get-prices")
+      scheduleMarketRefresh(60000);
+  } finally {
+    if (generation === marketGeneration) refreshing = false;
+  }
+}
+
+async function refreshOfficialMarket(generation: number, checkpoint: () => void){
   if (getDataUrl == "" || getDataUrl == null)
     return;
   if (getDataUrl == "https://reso-online-ddos.soli-reso.com/get_server_trade/") {
@@ -1500,12 +1626,10 @@ export async function get_price(){
     console.log("官服")
     console.log(tiNow);
     console.log(nextTi);
-    if (tiNow < nextTi) {
-      intervalID = setTimeout(get_price, 3e4);
-      console.log("未达到更新时间");
-      return;
-    }
-    const response = await axios.get(getDataUrl);
+    const response = await axios.get(getDataUrl, { timeout: 15000 });
+    if (marketDisposed || generation !== marketGeneration) return;
+    validateTradeSnapshot(response.data);
+    checkpoint();
     var data;
     data = response.data.server_trade;
     ti = response.data.refresh_time;
@@ -1513,16 +1637,18 @@ export async function get_price(){
     nextTi = ti + tiInterval;
     console.log(nextTi);
     console.log(nextTi * 1e3 - tiNow * 1e3 + 60);
-    if (nextTi * 1e3 - tiNow * 1e3 + 60 < 0) {
+    if (nextTi * 1e3 <= Date.now()) {
       if (waitTi < 6e4)
         waitTi = waitTi + 1e4;
-      intervalID = setTimeout(get_price, waitTi);
-      console.log("数据未刷新，等待时间" + waitTi / 1e3 + "s");
-      return;
+      scheduleMarketRefresh(waitTi);
+      console.log("官服数据未刷新，使用已有快照，等待时间" + waitTi / 1e3 + "s");
     } else {
-      intervalID = setTimeout(get_price, nextTi * 1e3 - tiNow * 1e3 + 25e3);
+      scheduleMarketRefresh(nextTi * 1e3 - Date.now() + 25e3);
       waitTi = 0;
     }
+    if (ti < marketState.refreshTime) return;
+    marketState.failed = false;
+    if (ti === marketState.refreshTime && responseData && marketState.generation === generation) return;
     ItemMaxPrice = get_max_price();
     //console.log(ItemMaxPrice)
     if (hasEnabledSpecialCurrencyMarkets()) {
@@ -1539,7 +1665,9 @@ export async function get_price(){
   low_min = 0
 
   if (getDataUrl == "https://www.resonance-columba.com/api/get-prices") {
-    const response = await axios.get(getDataUrl);
+    const response = await axios.get(getDataUrl, { timeout: 15000 });
+    if (marketDisposed || generation !== marketGeneration) return;
+    checkpoint();
     data = response.data.data;
     if (Object.keys(data).length != PRODUCTS.length) {
       if (updataNum == 0) {
@@ -1646,7 +1774,8 @@ export async function get_price(){
     xiuwu_tiemeng_output_str = xiuwuTiemengOutput.output;
     xiuwu_tiemeng_short_output_str = xiuwuTiemengOutput.shortOutput;
   }
-  for (let qqTeam in ItemSendList) {
+  const freshOfficialSnapshot = getDataUrl === "https://www.resonance-columba.com/api/get-prices" || nextTi * 1000 > Date.now();
+  if (freshOfficialSnapshot) for (let qqTeam in ItemSendList) {
     for (let Item in ItemSendList[qqTeam]) {
       if (ItemSendList[qqTeam][Item]["type"] == "buy") {
         for (var i = 0; i < ItemSendList[qqTeam][Item]["city"].length; i++) {
@@ -1789,8 +1918,12 @@ export async function get_price(){
   low_output_str = low_output_str + maxRestock_4.low_top_str + "\n";
   low_output_str = low_output_str + maxRestock_5.low_top_str + "\n";
   low_output_str = low_output_str + maxRestock_6.low_top_str;
-  console.log("行情刷新");
-  try{
+  marketState.refreshTime = ti ?? 0;
+  marketState.interval = tiInterval ?? 0;
+  marketState.failed = false;
+  marketState.generation = generation;
+  console.log(freshOfficialSnapshot ? "官服行情刷新" : "官服已加载过期行情快照");
+  if (freshOfficialSnapshot) try{
     send_message(min)
     send_low_message(low_min)
   }
@@ -1821,18 +1954,34 @@ export async function get_price(){
   //console.log(PRODUCTS)
 }
 
-export async function get_price_steam(){
+export async function get_price_steam() {
+  if (refreshingSteam || marketDisposed) return;
+  refreshingSteam = true;
+  let restoreCache = () => {};
+  const generation = marketGeneration;
+  try {
+    await refreshSteamMarket(generation, () => { restoreCache = preserveMarketCache(true); });
+  } catch (error) {
+    if (marketDisposed || generation !== marketGeneration) return;
+    restoreCache();
+    steamMarketState.failed = true;
+    console.warn("STEAM行情获取失败，保留已有缓存，60秒后重试：", error instanceof Error ? error.message : String(error));
+    scheduleMarketRefresh(60000, true);
+  } finally {
+    if (generation === marketGeneration) refreshingSteam = false;
+  }
+}
+
+async function refreshSteamMarket(generation: number, checkpoint: () => void){
   var getDataUrlSteam = "https://jp-prd-rzns.gameduchy.com/get_server_trade/"
   let tiNow = Date.now() / 1e3;
   console.log("日服（STEAM）")
   console.log(tiNow);
   console.log(nextTiSteam);
-  if (tiNow < nextTiSteam) {
-    intervalIDSteam = setTimeout(get_price_steam, 3e4);
-    console.log("未达到更新时间");
-    return;
-  }
-  const response = await axios.get(getDataUrlSteam);
+  const response = await axios.get(getDataUrlSteam, { timeout: 15000 });
+  if (marketDisposed || generation !== marketGeneration) return;
+  validateTradeSnapshot(response.data);
+  checkpoint();
   var data;
   data = response.data.server_trade;
   data = replaceKeysAndValues(data,items_japanese,items_chinese)
@@ -1842,15 +1991,18 @@ export async function get_price_steam(){
   nextTiSteam = tiSteam + tiIntervalSteam;
   console.log(nextTiSteam);
   console.log(nextTiSteam * 1e3 - tiNow * 1e3 + 60);
-  if (nextTiSteam * 1e3 - tiNow * 1e3 + 60 < 0) {
+  if (nextTiSteam * 1e3 <= Date.now()) {
     if (waitTiSteam < 6e4)
       waitTiSteam = waitTiSteam + 1e4;
-    intervalIDSteam = setTimeout(get_price_steam, waitTiSteam);
+    scheduleMarketRefresh(waitTiSteam, true);
     console.log("STEAM数据未刷新，等待时间" + waitTiSteam / 1e3 + "s");
   } else {
-    intervalIDSteam = setTimeout(get_price_steam, nextTiSteam * 1e3 - tiNow * 1e3 + 25e3);
+    scheduleMarketRefresh(nextTiSteam * 1e3 - Date.now() + 25e3, true);
     waitTiSteam = 0;
   }
+  if (tiSteam < steamMarketState.refreshTime) return;
+  steamMarketState.failed = false;
+  if (tiSteam === steamMarketState.refreshTime && responseDataSteam && steamMarketState.generation === generation) return;
   responseDataSteam = removeProductsWithUnknownBuyCities(convertFirebaseDataToGetPricesDataNew(data,cityListSteam), cityListSteam, steamProductNames);
 
 
@@ -1945,8 +2097,11 @@ export async function get_price_steam(){
   low_output_str_steam = low_output_str_steam + maxRestock_4.low_top_str + "\n";
   low_output_str_steam = low_output_str_steam + maxRestock_5.low_top_str + "\n";
   low_output_str_steam = low_output_str_steam + maxRestock_6.low_top_str;
-  console.log("行情刷新");
-  try{
+  steamMarketState.refreshTime = tiSteam;
+  steamMarketState.interval = tiIntervalSteam;
+  steamMarketState.generation = generation;
+  console.log(isMarketStale(true) ? "STEAM已加载过期行情快照" : "STEAM行情刷新");
+  if (!isMarketStale(true)) try{
     send_message(min)
     send_low_message(low_min)
   }
@@ -1979,6 +2134,16 @@ export async function get_price_steam(){
 
 export function apply(ctx: Context, config: Config) {
   // write your plugin here
+  const generation = ++marketGeneration;
+  marketDisposed = false;
+  refreshing = false;
+  refreshingSteam = false;
+  ctx.on("dispose", () => {
+    if (generation !== marketGeneration) return;
+    marketDisposed = true;
+    clearTimeout(intervalID);
+    clearTimeout(intervalIDSteam);
+  });
   JiaoziMarketOpen = config.JiaoziMarketOpen ?? true;
   SpecialCurrencyMarketOpen = config.SpecialCurrencyMarketOpen ?? {};
   if (!isSpecialCurrencyMarketEnabled(jiaoziMarketConfig)) {
@@ -2034,7 +2199,7 @@ export function apply(ctx: Context, config: Config) {
   })
   ctx.command("steam行情")
   .action(async ({ session }) => {
-    session.send(h("quote", { id: session.event.message.id }) + output_str_steam);
+    session.send(h("quote", { id: session.event.message.id }) + marketOutput(output_str_steam, true));
     });
   registerSpecialCurrencyCommands(ctx, jiaoziMarketConfig);
   registerXiuwuCommands(ctx);
@@ -2042,24 +2207,24 @@ export function apply(ctx: Context, config: Config) {
   .action(async ({ session }) => {
     const wulinyuanMarketOutput = getWulinyuanMarketCommandOutput(session.content, false);
     if (wulinyuanMarketOutput) {
-      session.send(wulinyuanMarketOutput);
+      session.send(marketOutput(wulinyuanMarketOutput));
       return;
     }
     if (!isShortTeamRestricted(session))
       if (SteamTeamList.indexOf(session.channelId) !== -1)
-        session.send(h("quote", { id: session.event.message.id }) + small_output_str_steam);
+        session.send(h("quote", { id: session.event.message.id }) + marketOutput(small_output_str_steam, true));
       else
-        session.send(h("quote", { id: session.event.message.id }) + small_output_str);
+        session.send(h("quote", { id: session.event.message.id }) + marketOutput(small_output_str));
     else
       if (SteamTeamList.indexOf(session.channelId) !== -1)
-        session.send(short_output_str_steam);
+        session.send(marketOutput(short_output_str_steam, true));
       else
-        session.send(short_output_str);
+        session.send(marketOutput(short_output_str));
     });
   ctx.command("无海行情")
   .action(async ({ session }) => {
     if (!isShortTeamRestricted(session) || session.channelId in SteamTeamList)
-      session.send(h("quote", { id: session.event.message.id }) + low_output_str);
+      session.send(h("quote", { id: session.event.message.id }) + marketOutput(low_output_str));
     else
       session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
     });
@@ -2067,24 +2232,24 @@ export function apply(ctx: Context, config: Config) {
   .action(async ({ session }) => {
     const wulinyuanMarketOutput = getWulinyuanMarketCommandOutput(session.content, false);
     if (wulinyuanMarketOutput) {
-      session.send(wulinyuanMarketOutput);
+      session.send(marketOutput(wulinyuanMarketOutput));
       return;
     }
     if (!isShortTeamRestricted(session))
       if (SteamTeamList.indexOf(session.channelId) !== -1)
-        session.send(h("quote", { id: session.event.message.id }) + small_output_str_steam);
+        session.send(h("quote", { id: session.event.message.id }) + marketOutput(small_output_str_steam, true));
       else
-        session.send(h("quote", { id: session.event.message.id }) + small_output_str);
+        session.send(h("quote", { id: session.event.message.id }) + marketOutput(small_output_str));
     else
       if (SteamTeamList.indexOf(session.channelId) !== -1)
-        session.send(short_output_str_steam);
+        session.send(marketOutput(short_output_str_steam, true));
       else
-        session.send(short_output_str);
+        session.send(marketOutput(short_output_str));
     });
   ctx.command("無海行情")
   .action(async ({ session }) => {
     if (!isShortTeamRestricted(session) || session.channelId in SteamTeamList)
-      session.send(h("quote", { id: session.event.message.id }) + low_output_str);
+      session.send(h("quote", { id: session.event.message.id }) + marketOutput(low_output_str));
     else
       session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
     });
@@ -2093,7 +2258,7 @@ export function apply(ctx: Context, config: Config) {
     const xiuwuMarketOutput = getXiuwuMarketCommandOutput(session.content, true);
     if (xiuwuMarketOutput) {
       if (!isShortTeamRestricted(session))
-        session.send(h("quote", { id: session.event.message.id }) + xiuwuMarketOutput);
+        session.send(h("quote", { id: session.event.message.id }) + marketOutput(xiuwuMarketOutput));
       else
         session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群 957035373\n行情通知群 756406126");
       return;
@@ -2101,16 +2266,16 @@ export function apply(ctx: Context, config: Config) {
     const wulinyuanMarketOutput = getWulinyuanMarketCommandOutput(session.content, true);
     if (wulinyuanMarketOutput) {
       if (!isShortTeamRestricted(session))
-        session.send(h("quote", { id: session.event.message.id }) + wulinyuanMarketOutput);
+        session.send(h("quote", { id: session.event.message.id }) + marketOutput(wulinyuanMarketOutput));
       else
         session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
       return;
     }
     if (!isShortTeamRestricted(session))
       if (SteamTeamList.indexOf(session.channelId) !== -1)
-        session.send(h("quote", { id: session.event.message.id }) + output_str_steam);
+        session.send(h("quote", { id: session.event.message.id }) + marketOutput(output_str_steam, true));
       else
-        session.send(h("quote", { id: session.event.message.id }) + output_str);
+        session.send(h("quote", { id: session.event.message.id }) + marketOutput(output_str));
     else
       session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
   });
@@ -2119,7 +2284,7 @@ export function apply(ctx: Context, config: Config) {
     const xiuwuMarketOutput = getXiuwuMarketCommandOutput(session.content, true);
     if (xiuwuMarketOutput) {
       if (!isShortTeamRestricted(session))
-        session.send(h("quote", { id: session.event.message.id }) + xiuwuMarketOutput);
+        session.send(h("quote", { id: session.event.message.id }) + marketOutput(xiuwuMarketOutput));
       else
         session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群 957035373\n行情通知群 756406126");
       return;
@@ -2127,16 +2292,16 @@ export function apply(ctx: Context, config: Config) {
     const wulinyuanMarketOutput = getWulinyuanMarketCommandOutput(session.content, true);
     if (wulinyuanMarketOutput) {
       if (!isShortTeamRestricted(session))
-        session.send(h("quote", { id: session.event.message.id }) + wulinyuanMarketOutput);
+        session.send(h("quote", { id: session.event.message.id }) + marketOutput(wulinyuanMarketOutput));
       else
         session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
       return;
     }
     if (!isShortTeamRestricted(session))
       if (SteamTeamList.indexOf(session.channelId) !== -1)
-        session.send(h("quote", { id: session.event.message.id }) + output_str_steam);
+        session.send(h("quote", { id: session.event.message.id }) + marketOutput(output_str_steam, true));
       else
-        session.send(h("quote", { id: session.event.message.id }) + output_str);
+        session.send(h("quote", { id: session.event.message.id }) + marketOutput(output_str));
     else
       session.send("为维护本群聊天环境不支持本指令\n如有需要请加入以下群聊:\n行情查询群:957035373\n行情通知群:756406126");
   });
@@ -2159,6 +2324,9 @@ export function apply(ctx: Context, config: Config) {
       }
       else{
         GoodsData = responseData
+      }
+      if (!GoodsData || Object.keys(GoodsData).length === 0) {
+        return marketOutput("", SteamTeamList.indexOf(session.channelId) !== -1);
       }
       for (var goodsName in GoodsData){
         let nameFlag : boolean = true
@@ -2351,7 +2519,7 @@ export function apply(ctx: Context, config: Config) {
             }
             items_str = items_str + "查询到城市" + cityName + "\n\n"
             for (let goodsName in cityItemList[cityName]){
-              if(!(cityName in GoodsData[cityItemList[cityName][goodsName]]['buy']))
+              if (!GoodsData[cityItemList[cityName][goodsName]]?.buy?.[cityName])
                 continue
               //console.log(cityItemList[cityName][goodsName])
               var trend_updown = GoodsData[cityItemList[cityName][goodsName]]['buy'][cityName]['trend'] === "up" ? "↑" : "↓"
@@ -2365,9 +2533,9 @@ export function apply(ctx: Context, config: Config) {
           items_str = "未查询到名为" + item + "的商品或城市。"
       }
       if (!isShortTeamRestricted(session))
-        return h("quote", { id: session.event.message.id }) + items_str;
+        return h("quote", { id: session.event.message.id }) + marketOutput(items_str, SteamTeamList.indexOf(session.channelId) !== -1);
       else
-        return short_items_str;
+        return marketOutput(short_items_str || items_str, SteamTeamList.indexOf(session.channelId) !== -1);
       } else {
       // 如果去掉这一行，那么不满足上述条件的消息就不会进入下一个中间件了
       return next()
@@ -2393,6 +2561,9 @@ export function apply(ctx: Context, config: Config) {
       }
       else{
         GoodsData = responseData
+      }
+      if (!GoodsData || Object.keys(GoodsData).length === 0) {
+        return marketOutput("", SteamTeamList.indexOf(session.channelId) !== -1);
       }
       var items_str = "";
       var buyCity = [];
@@ -2489,7 +2660,7 @@ export function apply(ctx: Context, config: Config) {
           if (nameFlag) {
             items_str = items_str + "查询到城市" + cityName2 + "\n\n";
             for (let goodsName2 in cityItemList[cityName2]) {
-              if (!(cityName2 in GoodsData[cityItemList[cityName2][goodsName2]]["buy"]))
+              if (!GoodsData[cityItemList[cityName2][goodsName2]]?.buy?.[cityName2])
                 continue;
               var trend_updown = GoodsData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["trend"] === "up" ? "↑" : "↓";
               let time = intervalTime(GoodsData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["time"]);
@@ -2501,7 +2672,7 @@ export function apply(ctx: Context, config: Config) {
         if (items_str == "")
           items_str = "未查询到名为" + item + "的商品或城市。";
       }
-      return h("quote", { id: session.event.message.id }) + items_str;
+      return h("quote", { id: session.event.message.id }) + marketOutput(items_str, SteamTeamList.indexOf(session.channelId) !== -1);
     } else {
       return next();
     }
@@ -2518,6 +2689,9 @@ export function apply(ctx: Context, config: Config) {
       }
       else{
         GoodsData = responseData
+      }
+      if (!GoodsData || Object.keys(GoodsData).length === 0) {
+        return marketOutput("", SteamTeamList.indexOf(session.channelId) !== -1);
       }
       var item = session.content.slice(2);
       item = toSimplified(item.trim());
@@ -2661,7 +2835,7 @@ export function apply(ctx: Context, config: Config) {
           if (nameFlag) {
             items_str = items_str + "查询到城市" + cityName2 + "\n\n";
             for (let goodsName2 in cityItemList[cityName2]) {
-              if (!(cityName2 in GoodsData[cityItemList[cityName2][goodsName2]]["buy"]))
+              if (!GoodsData[cityItemList[cityName2][goodsName2]]?.buy?.[cityName2])
                 continue;
               var trend_updown = GoodsData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["trend"] === "up" ? "↑" : "↓";
               let time2 = intervalTime(GoodsData[cityItemList[cityName2][goodsName2]]["buy"][cityName2]["time"]);
@@ -2673,7 +2847,7 @@ export function apply(ctx: Context, config: Config) {
         if (items_str == "")
           items_str = "未查询到名为" + item + "的商品或城市。";
       }
-      return h("quote", { id: session.event.message.id }) + items_str;
+      return h("quote", { id: session.event.message.id }) + marketOutput(items_str, SteamTeamList.indexOf(session.channelId) !== -1);
     } else {
       return next();
     }
@@ -2687,6 +2861,9 @@ export function apply(ctx: Context, config: Config) {
       }
       else{
         GoodsData = responseData
+      }
+      if (!GoodsData || Object.keys(GoodsData).length === 0) {
+        return marketOutput("", SteamTeamList.indexOf(session.channelId) !== -1);
       }
     if (updataNum < 5){
       var sellPrice = 0
@@ -2714,7 +2891,7 @@ export function apply(ctx: Context, config: Config) {
       outputStr = outputStr + "当前最低沙金 淘金乐园 " + buyVariation + buyTrend_updown + " " + buyPrice + "\n"
       outputStr = outputStr + "当前最高金线 " + sellCity + " " + sellVariation + sellTrend_updown + " 利润：" + price + "\n"
       outputStr = outputStr + "大概所需金线数量" + needNum.toString()
-      session.send(h('quote', { id: session.messageId }) + outputStr)
+      session.send(h('quote', { id: session.messageId }) + marketOutput(outputStr, SteamTeamList.indexOf(session.channelId) !== -1))
     }
     else
       session.send(h('quote', { id: session.messageId }) + "数据源出现严重错误，请通知管理员处理")
@@ -2731,6 +2908,9 @@ export function apply(ctx: Context, config: Config) {
       }
       else{
         GoodsData = responseData
+      }
+      if (!GoodsData || Object.keys(GoodsData).length === 0) {
+        return marketOutput("", SteamTeamList.indexOf(session.channelId) !== -1);
       }
       var num = session.content.slice(8)
       num = num.trim()
@@ -2792,7 +2972,7 @@ export function apply(ctx: Context, config: Config) {
       }
       //console.log(outputStr)
       //session.send(h('at', { id: session.userId }) + outputStr)
-      session.send(h('quote', { id: session.messageId }) + outputStr)
+      session.send(h('quote', { id: session.messageId }) + marketOutput(outputStr, SteamTeamList.indexOf(session.channelId) !== -1))
     }else {
       // 如果去掉这一行，那么不满足上述条件的消息就不会进入下一个中间件了
       return next()
@@ -2809,6 +2989,9 @@ export function apply(ctx: Context, config: Config) {
       else{
         GoodsData = responseData
       }
+      if (!GoodsData || Object.keys(GoodsData).length === 0) {
+        return marketOutput("", SteamTeamList.indexOf(session.channelId) !== -1);
+      }
       let out_str = ""
       //console.log(min)
       //console.log(low_min)
@@ -2838,7 +3021,7 @@ export function apply(ctx: Context, config: Config) {
             out_str = out_str + "有非海角城大行情"
           }
       }
-      session.send((h('quote', { id: session.messageId })) + out_str)  
+      session.send((h('quote', { id: session.messageId })) + marketOutput(out_str, SteamTeamList.indexOf(session.channelId) !== -1))
     }
     else
       session.send((h('quote', { id: session.messageId })) + "数据源出现严重错误，请通知管理员处理")  
@@ -2854,6 +3037,9 @@ export function apply(ctx: Context, config: Config) {
       else{
         GoodsData = responseData
       }
+      if (!GoodsData || Object.keys(GoodsData).length === 0) {
+        return marketOutput("", SteamTeamList.indexOf(session.channelId) !== -1);
+      }
       let out_str = ""
       //console.log(min)
       //console.log(low_min)
@@ -2883,7 +3069,7 @@ export function apply(ctx: Context, config: Config) {
             out_str = out_str + "有非海角城大行情"
           }
       }
-      session.send((h('quote', { id: session.messageId })) + out_str)  
+      session.send((h('quote', { id: session.messageId })) + marketOutput(out_str, SteamTeamList.indexOf(session.channelId) !== -1))
     }
     else
       session.send((h('quote', { id: session.messageId })) + "数据源出现严重错误，请通知管理员处理")  

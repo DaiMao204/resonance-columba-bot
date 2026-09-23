@@ -53,6 +53,8 @@ export var BotConfig:PlayerConfig = {
     "铁山城": 20,
     "贡露城": 20,
     "岚心城": 20,
+    "塔图站": 20,
+    "雪金城": 20,
   },
   roles: defaultRoles,
   onegraph: {
@@ -153,6 +155,8 @@ export var BotConfigNoReturnBargain:PlayerConfig = {
     "铁山城": 20,
     "贡露城": 20,
     "岚心城": 20,
+    "塔图站": 20,
+    "雪金城": 20,
   },
   roles: defaultRoles,
   onegraph: {
@@ -253,6 +257,8 @@ export var BotConfigSteam:PlayerConfig = {
     "铁山城": 20,
     "贡露城": 20,
     "岚心城": 20,
+    "塔图站": 20,
+    "雪金城": 20,
   },
   roles: defaultSteamRoles,
   onegraph: {
@@ -353,6 +359,8 @@ export var BotConfigNoReturnBargainSteam:PlayerConfig = {
     "铁山城": 20,
     "贡露城": 20,
     "岚心城": 20,
+    "塔图站": 20,
+    "雪金城": 20,
   },
   roles: defaultSteamRoles,
   onegraph: {

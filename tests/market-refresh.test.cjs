@@ -180,8 +180,8 @@ function makeHarness(responses = [], overrides = {}) {
       const result = await run(0);
       return [...session.messages, ...(result === undefined ? [] : [String(result)])].join('\n');
     },
-    async runRefreshTimer() {
-      const entry = [...timers].find(([, timer]) => timer.callback.name === 'get_price');
+    async runRefreshTimer(refreshName = 'get_price') {
+      const entry = [...timers].find(([, timer]) => timer.callback.name === refreshName);
       assert.ok(entry, 'An HTTP failure or stale snapshot must schedule another refresh');
       const [id, timer] = entry;
       assert.ok(timer.delay > 0 && timer.delay <= 60000, `Unexpected retry delay ${timer.delay}`);
@@ -202,26 +202,63 @@ test('before the first response, current market and item lookup explain that dat
   assert.doesNotMatch(result, /未查询到名为/);
 });
 
-test('a stale first snapshot remains queryable with a warning and cannot trigger market alerts', async () => {
-  const harness = makeHarness([snapshot(INITIAL_TIME / 1000 - 1200)]);
-  await harness.start();
-  assert.equal(harness.plugin.responseData?.红茶?.buy?.修格里城?.price, 688);
-  const market = await harness.command('当前行情');
-  assert.match(market, /行情/);
-  assert.match(market, STALE_NOTICE);
-  const item = await harness.message('时价红茶');
-  assert.match(item, /查询到商品红茶/);
-  assert.match(item, /688/);
-  assert.match(item, STALE_NOTICE);
-  assert.doesNotMatch(item, /未查询到名为/);
-  const craftedItem = await harness.message('时价雪金');
-  assert.match(craftedItem, /查询到商品雪金锦袍/);
-  assert.match(craftedItem, /塔图站/);
-  assert.match(craftedItem, STALE_NOTICE);
-  assert.equal(harness.notices.length, 0);
-  assert.ok([...harness.timers.values()].every((timer) => timer.delay <= 60000),
-    'Stale data must not schedule a delayed market notification');
-});
+for (const [server, createSnapshot, config, channelId, refreshName, cacheName] of [
+  ['official', snapshot, {}, 'test-query-group', 'get_price', 'responseData'],
+  ['Steam', steamSnapshot, STEAM_CONFIG, 'test-steam-group', 'get_price_steam', 'responseDataSteam'],
+]) {
+  test(`${server} stale notices appear only after one hour while retries and alert suppression remain active`, async () => {
+    const refreshTime = Math.floor(INITIAL_TIME / 1000) - 1200;
+    const harness = makeHarness([
+      createSnapshot(refreshTime),
+      createSnapshot(refreshTime),
+      (now) => createSnapshot(now / 1000 - 1, 700),
+    ], config);
+    const queryOutputs = async () => [
+      await harness.command('当前行情', channelId),
+      await harness.command('详细行情', channelId),
+      await harness.message('时价红茶', channelId),
+      ...(server === 'official' ? [await harness.message('时价雪金', channelId)] : []),
+    ];
+    await harness.start();
+    assert.equal(harness.plugin[cacheName].红茶.buy.修格里城.price, 688);
+    const initialOutputs = await queryOutputs();
+    assert.match(initialOutputs[0], /综合利润往返跑商行情/);
+    assert.match(initialOutputs[0], /路线/);
+    assert.match(initialOutputs[2], /查询到商品红茶/);
+    assert.match(initialOutputs[2], /688/);
+    if (server === 'official') {
+      assert.match(initialOutputs[3], /查询到商品雪金锦袍/);
+      assert.match(initialOutputs[3], /塔图站/);
+    }
+    for (const output of initialOutputs) assert.doesNotMatch(output, STALE_NOTICE);
+    assert.equal(harness.notices.length, 0);
+    assert.ok([...harness.timers.values()].every((timer) => timer.delay <= 60000),
+      'Short-term stale data must not schedule a delayed market notification');
+
+    // Receiving the same snapshot must keep retrying without resetting its age.
+    await harness.runRefreshTimer(refreshName);
+    assert.equal(harness.requests.length, 2);
+    assert.equal(harness.notices.length, 0);
+    assert.ok([...harness.timers.values()].some((timer) =>
+      timer.callback.name === refreshName && timer.delay > 0 && timer.delay <= 60000));
+    for (const output of await queryOutputs()) assert.doesNotMatch(output, STALE_NOTICE);
+
+    for (const age of [3599999, 3600000, 3600001]) {
+      harness.advance(refreshTime * 1000 + age - harness.now);
+      for (const output of await queryOutputs()) {
+        if (age > 3600000) assert.match(output, STALE_NOTICE);
+        else assert.doesNotMatch(output, STALE_NOTICE);
+      }
+      assert.equal(harness.notices.length, 0);
+    }
+
+    await harness.plugin[refreshName]();
+    assert.equal(harness.requests.length, 3);
+    assert.equal(harness.plugin[cacheName].红茶.buy.修格里城.price, 700);
+    for (const output of await queryOutputs()) assert.doesNotMatch(output, STALE_NOTICE);
+    assert.match(await harness.message('时价红茶', channelId), /700/);
+  });
+}
 
 test('a failed first request schedules a retry and recovers without a restart', async () => {
   const harness = makeHarness([
@@ -252,7 +289,7 @@ test('an older upstream snapshot cannot replace a newer cached price', async () 
   assert.equal(harness.requests.length, 2);
   assert.equal(harness.plugin.responseData.红茶.buy.修格里城.price, 688);
   assert.equal(harness.plugin.responseData.红茶.buy.修格里城.time, firstTime);
-  assert.match(await harness.command('当前行情'), STALE_NOTICE);
+  assert.doesNotMatch(await harness.command('当前行情'), STALE_NOTICE);
   assert.equal(harness.notices.length, noticeCount);
 });
 
@@ -473,9 +510,12 @@ test('an HTTP response arriving after dispose cannot restart timers or publish d
 // Optional replay of an independently downloaded response. The capture stays
 // outside the committed fixtures and is never fetched by the test process.
 if (process.env.MARKET_SNAPSHOT_FILE) {
-  for (const [state, age] of [['fresh', 120], ['stale', 900]]) {
+  for (const state of ['fresh', 'short-stale', 'long-stale']) {
     test(`captured official response: ${state} snapshot serves current market and 时价雪金`, async (t) => {
       const capture = JSON.parse(fs.readFileSync(process.env.MARKET_SNAPSHOT_FILE, 'utf8'));
+      const age = state === 'fresh' ? Math.min(120, capture.interval / 2)
+        : state === 'short-stale' ? capture.interval + 300 : Math.max(3601, capture.interval + 300);
+      if (state === 'short-stale') assert.ok(age <= 3600, 'The short-stale capture must be within one hour');
       const harness = makeHarness([capture]);
       harness.advance((capture.refresh_time + age) * 1000 - INITIAL_TIME);
       await harness.start();
@@ -487,12 +527,17 @@ if (process.env.MARKET_SNAPSHOT_FILE) {
       assert.doesNotMatch(item, /未查询到名为/);
       assert.doesNotMatch(market, /尚未就绪|获取失败/);
       assert.ok(!harness.logs.some((args) => String(args[0]).includes('Prestige configurtation not found')));
-      if (state === 'stale') {
+      if (state === 'long-stale') {
         assert.match(market, STALE_NOTICE);
         assert.match(item, STALE_NOTICE);
-        assert.equal(harness.notices.length, 0);
       } else {
         assert.doesNotMatch(market, STALE_NOTICE);
+        assert.doesNotMatch(item, STALE_NOTICE);
+      }
+      if (state !== 'fresh') {
+        assert.equal(harness.notices.length, 0);
+        assert.ok([...harness.timers.values()].every((timer) => timer.delay <= 60000),
+          'Stale official quotes must not schedule market alerts');
       }
       t.diagnostic(`Loaded ${Object.keys(harness.plugin.responseData).length} products; ${market}`);
       t.diagnostic(item);
@@ -501,11 +546,13 @@ if (process.env.MARKET_SNAPSHOT_FILE) {
 }
 
 if (process.env.MARKET_STEAM_SNAPSHOT_FILE) {
-  for (const state of ['fresh', 'stale']) {
+  for (const state of ['fresh', 'short-stale', 'long-stale']) {
     test(`captured Steam response: ${state} snapshot serves current market and 时价红茶`, async (t) => {
       const capture = JSON.parse(fs.readFileSync(process.env.MARKET_STEAM_SNAPSHOT_FILE, 'utf8'));
       const original = JSON.stringify(capture);
-      const age = state === 'fresh' ? Math.min(120, capture.interval / 2) : capture.interval + 300;
+      const age = state === 'fresh' ? Math.min(120, capture.interval / 2)
+        : state === 'short-stale' ? capture.interval + 300 : Math.max(3601, capture.interval + 300);
+      if (state === 'short-stale') assert.ok(age <= 3600, 'The short-stale capture must be within one hour');
       const harness = makeHarness([capture], STEAM_CONFIG);
       harness.advance((capture.refresh_time + age) * 1000 - INITIAL_TIME);
       await harness.start();
@@ -517,14 +564,17 @@ if (process.env.MARKET_STEAM_SNAPSHOT_FILE) {
       assert.doesNotMatch(market, /尚未就绪|获取失败/);
       assert.doesNotMatch(item, /未查询到名为|获取失败/);
       assert.equal(JSON.stringify(capture), original);
-      if (state === 'stale') {
+      if (state === 'long-stale') {
         assert.match(market, STALE_NOTICE);
         assert.match(item, STALE_NOTICE);
+      } else {
+        assert.doesNotMatch(market, STALE_NOTICE);
+        assert.doesNotMatch(item, STALE_NOTICE);
+      }
+      if (state !== 'fresh') {
         assert.equal(harness.notices.length, 0);
         assert.ok([...harness.timers.values()].every((timer) => timer.delay <= 60000),
           'Stale Steam quotes must not schedule market alerts');
-      } else {
-        assert.doesNotMatch(market, STALE_NOTICE);
       }
       t.diagnostic(`Loaded ${Object.keys(harness.plugin.responseDataSteam).length} Steam products; ${market}`);
       t.diagnostic(item);

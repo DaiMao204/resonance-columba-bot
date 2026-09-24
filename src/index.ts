@@ -1494,6 +1494,7 @@ var waitTiSteam = 0;
 
 const marketState = { refreshTime: 0, interval: 0, failed: false, generation: 0 };
 const steamMarketState = { refreshTime: 0, interval: 0, failed: false, generation: 0 };
+const MARKET_STALE_NOTICE_DELAY_MS = 60 * 60 * 1000;
 let refreshing = false;
 let refreshingSteam = false;
 let marketDisposed = false;
@@ -1516,7 +1517,7 @@ function marketOutput(output: string, steam = false) {
     : "未知";
   const notice = state.failed
     ? `行情获取失败，正在自动重试；以下为缓存行情（快照时间：${snapshotTime}）。\n\n`
-    : isMarketStale(steam)
+    : isMarketStale(steam) && Date.now() - state.refreshTime * 1000 > MARKET_STALE_NOTICE_DELAY_MS
       ? `行情数据已过期，上游尚未刷新；以下为缓存行情（快照时间：${snapshotTime}），仅供参考。\n\n`
       : "";
   return notice + (output || "行情暂无可用路线，请稍后再查。");

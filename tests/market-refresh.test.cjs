@@ -49,6 +49,31 @@ function snapshot(refreshTime, teaPrice = 688) {
   };
 }
 
+// Steam can send an empty string for an unavailable product. Keep real Japanese
+// item/city names here so the test also exercises translation before conversion.
+function steamSnapshot(refreshTime, teaPrice = 688) {
+  const price = (base, current = base) => ({
+    base_price: base, price: current, trend: 1, ti: refreshTime,
+  });
+  return {
+    refresh_time: refreshTime,
+    interval: 600,
+    server_trade: {
+      'No.7 BEER': '',
+      紅茶: {
+        buy: { シュグリシティ: price(688, teaPrice) },
+        sell: { 'フリーポートNo.7': price(915, 1098) },
+      },
+      ナッツ: {
+        buy: { 'フリーポートNo.7': price(210) },
+        sell: { シュグリシティ: price(237, 284) },
+      },
+    },
+  };
+}
+
+const STEAM_CONFIG = { DataUrl: '', SteamOpen: true, SteamTeamList: ['test-steam-group'] };
+
 function makeHarness(responses = [], overrides = {}) {
   let now = INITIAL_TIME;
   let timerId = 0;
@@ -349,6 +374,79 @@ test('Steam success does not hide an official-server failure', async () => {
     timer.callback.name === 'get_price' && timer.delay === 60000));
 });
 
+test('Steam skips an empty-string product without losing valid quotes or mutating the response', async () => {
+  const firstTime = INITIAL_TIME / 1000 - 1;
+  const first = steamSnapshot(firstTime);
+  const next = steamSnapshot(firstTime + 700, 700);
+  const originals = [JSON.stringify(first), JSON.stringify(next)];
+  const harness = makeHarness([first, next], STEAM_CONFIG);
+  await harness.start();
+  assert.deepEqual(harness.requests.map((request) => request.url), [STEAM_URL]);
+  assert.equal(harness.plugin.responseDataSteam.红茶.buy.修格里城.price, 688);
+  assert.equal(harness.plugin.responseDataSteam.坚果.buy.七号自由港.price, 210);
+  assert.ok(!('啤酒' in harness.plugin.responseDataSteam));
+  assert.ok(!('No.7 BEER' in harness.plugin.responseDataSteam));
+  const market = await harness.command('当前行情', 'test-steam-group');
+  assert.match(market, /综合利润往返跑商行情/);
+  assert.match(market, /路线/);
+  assert.doesNotMatch(market, /获取失败|尚未就绪/);
+  assert.match(await harness.message('时价红茶', 'test-steam-group'), /查询到商品红茶/);
+  assert.match(await harness.message('时价啤酒', 'test-steam-group'), /未查询到名为/);
+  assert.ok(harness.logs.some((args) => args.join(' ').includes('No.7 BEER')),
+    'The omitted product should be named in the diagnostic log');
+
+  harness.advance(700000);
+  await harness.plugin.get_price_steam();
+  assert.equal(harness.plugin.responseDataSteam.红茶.buy.修格里城.price, 700);
+  assert.equal(harness.plugin.responseDataSteam.红茶.buy.修格里城.time, firstTime + 700);
+  assert.doesNotMatch(await harness.command('当前行情', 'test-steam-group'), /获取失败|尚未就绪/);
+  assert.deepEqual([JSON.stringify(first), JSON.stringify(next)], originals);
+});
+
+for (const [name, corrupt] of [
+  ['only empty-string products', (data) => { data.server_trade = { 'No.7 BEER': '' }; }],
+  ['null product', (data) => { data.server_trade.ナッツ = null; }],
+  ['nonempty string product', (data) => { data.server_trade.ナッツ = 'unavailable'; }],
+  ['array product', (data) => { data.server_trade.ナッツ = []; }],
+  ['malformed quote', (data) => { data.server_trade.紅茶.buy.シュグリシティ.price = null; }],
+]) {
+  test(`Steam ${name} preserves its previous cache and retries in 60 seconds`, async () => {
+    const firstTime = INITIAL_TIME / 1000 - 1;
+    const invalid = steamSnapshot(firstTime + 700, 700);
+    corrupt(invalid);
+    const harness = makeHarness([steamSnapshot(firstTime), invalid], STEAM_CONFIG);
+    await harness.start();
+    const previousCache = harness.plugin.responseDataSteam;
+    const previousPrices = JSON.stringify(previousCache);
+    const previousMarket = (await harness.command('当前行情', 'test-steam-group')).replace(/^<quote\/>/, '');
+    const noticeCount = harness.notices.length;
+    harness.advance(700000);
+    await harness.plugin.get_price_steam();
+    assert.equal(harness.plugin.responseDataSteam, previousCache);
+    assert.equal(JSON.stringify(harness.plugin.responseDataSteam), previousPrices);
+    const market = await harness.command('当前行情', 'test-steam-group');
+    assert.match(market, /获取失败/);
+    assert.ok(market.endsWith(previousMarket));
+    assert.match(await harness.message('时价红茶', 'test-steam-group'), /查询到商品红茶/);
+    assert.ok([...harness.timers.values()].some((timer) =>
+      timer.callback.name === 'get_price_steam' && timer.delay === 60000));
+    assert.equal(harness.notices.length, noticeCount);
+  });
+}
+
+test('official snapshots use the same empty-string filter and preserve the response object', async () => {
+  const data = snapshot(INITIAL_TIME / 1000 - 1);
+  data.server_trade.暂无报价商品 = '';
+  const original = JSON.stringify(data);
+  const harness = makeHarness([data]);
+  await harness.start();
+  assert.equal(harness.plugin.responseData.红茶.buy.修格里城.price, 688);
+  assert.ok(!('暂无报价商品' in harness.plugin.responseData));
+  assert.match(await harness.command('当前行情'), /路线/);
+  assert.doesNotMatch(await harness.command('当前行情'), /获取失败|尚未就绪/);
+  assert.equal(JSON.stringify(data), original);
+});
+
 test('disposing a stale plugin cancels retries and prevents further HTTP requests', async () => {
   const harness = makeHarness([snapshot(INITIAL_TIME / 1000 - 1200)]);
   await harness.start();
@@ -397,6 +495,38 @@ if (process.env.MARKET_SNAPSHOT_FILE) {
         assert.doesNotMatch(market, STALE_NOTICE);
       }
       t.diagnostic(`Loaded ${Object.keys(harness.plugin.responseData).length} products; ${market}`);
+      t.diagnostic(item);
+    });
+  }
+}
+
+if (process.env.MARKET_STEAM_SNAPSHOT_FILE) {
+  for (const state of ['fresh', 'stale']) {
+    test(`captured Steam response: ${state} snapshot serves current market and 时价红茶`, async (t) => {
+      const capture = JSON.parse(fs.readFileSync(process.env.MARKET_STEAM_SNAPSHOT_FILE, 'utf8'));
+      const original = JSON.stringify(capture);
+      const age = state === 'fresh' ? Math.min(120, capture.interval / 2) : capture.interval + 300;
+      const harness = makeHarness([capture], STEAM_CONFIG);
+      harness.advance((capture.refresh_time + age) * 1000 - INITIAL_TIME);
+      await harness.start();
+      const market = await harness.command('当前行情', 'test-steam-group');
+      const item = await harness.message('时价红茶', 'test-steam-group');
+      assert.match(market, /综合利润往返跑商行情/);
+      assert.match(market, /路线/);
+      assert.match(item, /查询到商品红茶/);
+      assert.doesNotMatch(market, /尚未就绪|获取失败/);
+      assert.doesNotMatch(item, /未查询到名为|获取失败/);
+      assert.equal(JSON.stringify(capture), original);
+      if (state === 'stale') {
+        assert.match(market, STALE_NOTICE);
+        assert.match(item, STALE_NOTICE);
+        assert.equal(harness.notices.length, 0);
+        assert.ok([...harness.timers.values()].every((timer) => timer.delay <= 60000),
+          'Stale Steam quotes must not schedule market alerts');
+      } else {
+        assert.doesNotMatch(market, STALE_NOTICE);
+      }
+      t.diagnostic(`Loaded ${Object.keys(harness.plugin.responseDataSteam).length} Steam products; ${market}`);
       t.diagnostic(item);
     });
   }

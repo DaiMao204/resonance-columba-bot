@@ -1522,17 +1522,26 @@ function marketOutput(output: string, steam = false) {
   return notice + (output || "行情暂无可用路线，请稍后再查。");
 }
 
-function validateTradeSnapshot(snapshot) {
+function validateTradeSnapshot(snapshot, serverName: string) {
   if (!snapshot || !Number.isFinite(snapshot.refresh_time) || snapshot.refresh_time <= 0 ||
       !Number.isFinite(snapshot.interval) || snapshot.interval <= 0 ||
       !snapshot.server_trade || typeof snapshot.server_trade !== "object" ||
       Array.isArray(snapshot.server_trade) || Object.keys(snapshot.server_trade).length === 0) {
     throw new Error("行情接口返回了空数据或无效的刷新时间");
   }
+  const products = { ...snapshot.server_trade };
+  const emptyProducts: string[] = [];
   let quoteCount = 0;
-  for (const product of Object.values(snapshot.server_trade)) {
+  for (const [productName, product] of Object.entries(products)) {
+    // Steam can return an empty string for a product without quotes (No.7 BEER).
+    // Remove only this placeholder; malformed non-empty data still fails below.
+    if (product === "") {
+      delete products[productName];
+      emptyProducts.push(productName);
+      continue;
+    }
     if (!product || typeof product !== "object" || Array.isArray(product))
-      throw new Error("行情接口返回了无效的商品数据");
+      throw new Error(`行情接口返回了无效的商品数据（${productName}）`);
     for (const [type, cities] of Object.entries(product)) {
       if ((type !== "buy" && type !== "sell") || !cities || typeof cities !== "object" || Array.isArray(cities))
         throw new Error("行情接口返回了无效的买卖数据");
@@ -1546,6 +1555,10 @@ function validateTradeSnapshot(snapshot) {
     }
   }
   if (!quoteCount) throw new Error("行情接口没有可用报价");
+  if (emptyProducts.length) {
+    console.warn(`${serverName}行情接口跳过空商品数据（${emptyProducts.length}项）：${emptyProducts.join("、")}`);
+  }
+  return products;
 }
 
 function scheduleMarketRefresh(delay: number, steam = false) {
@@ -1628,10 +1641,8 @@ async function refreshOfficialMarket(generation: number, checkpoint: () => void)
     console.log(nextTi);
     const response = await axios.get(getDataUrl, { timeout: 15000 });
     if (marketDisposed || generation !== marketGeneration) return;
-    validateTradeSnapshot(response.data);
+    var data = validateTradeSnapshot(response.data, "官服");
     checkpoint();
-    var data;
-    data = response.data.server_trade;
     ti = response.data.refresh_time;
     tiInterval = response.data.interval;
     nextTi = ti + tiInterval;
@@ -1980,10 +1991,8 @@ async function refreshSteamMarket(generation: number, checkpoint: () => void){
   console.log(nextTiSteam);
   const response = await axios.get(getDataUrlSteam, { timeout: 15000 });
   if (marketDisposed || generation !== marketGeneration) return;
-  validateTradeSnapshot(response.data);
+  var data = validateTradeSnapshot(response.data, "STEAM");
   checkpoint();
-  var data;
-  data = response.data.server_trade;
   data = replaceKeysAndValues(data,items_japanese,items_chinese)
   data = replaceKeysAndValues(data,citys_japanese,citys_chinese)
   tiSteam = response.data.refresh_time;
